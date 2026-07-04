@@ -156,6 +156,33 @@ KNOWLEDGE_TOOL = {
 # ---------------------------------------------------------------------------
 def run_orchestrator() -> dict:
     print("[1/4] orchestrator: decomposing task with extended thinking...")
+
+    # --- Pass 1: real extended-thinking plan -------------------------------
+    # Structured outputs suppress the summarized thinking stream, so we take the
+    # plan in a plain call first and capture the model's real thinking verbatim.
+    plan_resp = client.messages.create(
+        model=MODEL,
+        max_tokens=3000,
+        thinking={"type": "adaptive", "display": "summarized"},
+        output_config={"effort": "high"},
+        messages=[
+            {
+                "role": "user",
+                "content": (
+                    "You are the ORCHESTRATOR of a multi-agent system. Decompose "
+                    "the task below into exactly THREE subtasks, one per role, in "
+                    "this order: research, analyze, write. Think through how to "
+                    "split it, then briefly describe your plan and the concrete "
+                    "instruction you'd give each sub-agent.\n\n"
+                    f"TASK: {TASK}"
+                ),
+            }
+        ],
+    )
+    planning_text = thinking_of(plan_resp.content) or text_of(plan_resp.content)
+    plan_text = text_of(plan_resp.content)
+
+    # --- Pass 2: structured subtasks JSON, grounded in that plan -----------
     orchestrator_schema = {
         "type": "object",
         "properties": {
@@ -179,31 +206,27 @@ def run_orchestrator() -> dict:
         "required": ["subtasks"],
         "additionalProperties": False,
     }
-
-    resp = client.messages.create(
+    struct_resp = client.messages.create(
         model=MODEL,
-        max_tokens=4000,
-        thinking={"type": "adaptive", "display": "summarized"},
-        output_config={"format": {"type": "json_schema", "schema": orchestrator_schema}},
+        max_tokens=1500,
+        output_config={
+            "format": {"type": "json_schema", "schema": orchestrator_schema}
+        },
         messages=[
             {
                 "role": "user",
                 "content": (
-                    "You are the ORCHESTRATOR of a multi-agent system. Your job is "
-                    "to decompose a task into exactly THREE subtasks, one for each "
-                    "role, in this order: 'research', 'analyze', 'write'.\n\n"
-                    f"TASK: {TASK}\n\n"
-                    "Think through how to break this down, then output the three "
-                    "subtasks. Give each a short id (t1, t2, t3), its role, and a "
-                    "concrete one-sentence instruction for the sub-agent that will "
-                    "carry it out."
+                    "Convert this orchestration plan into exactly three subtasks "
+                    "(ids t1, t2, t3; roles research, analyze, write in that "
+                    "order), each with a concrete one-sentence instruction for the "
+                    "sub-agent.\n\n"
+                    f"TASK: {TASK}\n\nPLAN:\n{plan_text}"
                 ),
             }
         ],
     )
 
-    planning_text = thinking_of(resp.content)
-    payload = json.loads(text_of(resp.content))
+    payload = json.loads(text_of(struct_resp.content))
     subtasks = payload["subtasks"]
 
     # Defensive: ensure exactly 3, correct roles/order.
@@ -211,12 +234,9 @@ def run_orchestrator() -> dict:
     roles = [s["role"] for s in subtasks]
     assert roles == ["research", "analyze", "write"], roles
 
-    print(f"      -> {len(subtasks)} subtasks: {roles}")
-    return {
-        "planning_text": planning_text
-        or "(model returned no summarized thinking text)",
-        "subtasks": subtasks,
-    }
+    print(f"      -> plan captured ({len(planning_text)} chars) · "
+          f"{len(subtasks)} subtasks: {roles}")
+    return {"planning_text": planning_text, "subtasks": subtasks}
 
 
 # ---------------------------------------------------------------------------
@@ -325,79 +345,79 @@ def run_tool_subagent(subtask: dict, role: str, inject_checkpoint: bool) -> list
             max_tokens=2500,
             system=system,
             tools=[KNOWLEDGE_TOOL],
+            # one tool call per turn -> clean sequential steps for the replay
+            tool_choice={"type": "auto", "disable_parallel_tool_use": True},
             messages=messages,
         )
 
         intent = "".join(b.text for b in resp.content if b.type == "text").strip()
-        tool_use = _first(resp.content, "tool_use")
+        tool_uses = [b for b in resp.content if b.type == "tool_use"]
 
         if intent:
             steps.append({"type": "reasoning", "content": intent})
 
-        if resp.stop_reason != "tool_use" or tool_use is None:
+        if resp.stop_reason != "tool_use" or not tool_uses:
             # Final answer.
             steps.append(
                 {"type": "reasoning", "content": text_of(resp.content), "final": True}
             )
             break
 
-        original_input = dict(tool_use.input)
-        effective_input = original_input
+        # Handle every tool_use block (usually one, given disable_parallel).
+        api_results = []
+        for tu in tool_uses:
+            original_input = dict(tu.input)
+            effective_input = original_input
 
-        # --- SIMULATED STEERING (fabricated, explicitly labeled) --------------
-        if not checkpoint_done:
-            edited_input = dict(original_input)
-            # Narrow the lookup toward economics — a plausible human redirect.
-            edited_input["query_key"] = "smr_economics"
+            # --- SIMULATED STEERING (fabricated, explicitly labeled) ----------
+            if not checkpoint_done:
+                edited_input = dict(original_input)
+                # Narrow the lookup toward economics — a plausible human redirect.
+                edited_input["query_key"] = "smr_economics"
+                steps.append(
+                    {
+                        "type": "checkpoint",
+                        "simulated_steering": True,
+                        "content": {
+                            "tool": "knowledge_lookup",
+                            "original_input": original_input,
+                            "edited_input": edited_input,
+                            "rationale": (
+                                "redirected: prioritize economics/cost evidence "
+                                "over generic capacity facts for a decision-useful "
+                                "brief"
+                            ),
+                        },
+                    }
+                )
+                effective_input = edited_input
+                checkpoint_done = True
+
             steps.append(
                 {
-                    "type": "checkpoint",
-                    "simulated_steering": True,
-                    "content": {
-                        "tool": "knowledge_lookup",
-                        "original_input": original_input,
-                        "edited_input": edited_input,
-                        "rationale": (
-                            "redirected: prioritize economics/cost evidence over "
-                            "generic capacity facts for a decision-useful brief"
-                        ),
-                    },
+                    "type": "tool_call",
+                    "content": {"name": "knowledge_lookup", "input": effective_input},
                 }
             )
-            effective_input = edited_input
-            checkpoint_done = True
+            result_text = run_knowledge_lookup(effective_input.get("query_key", ""))
+            steps.append(
+                {
+                    "type": "tool_result",
+                    "content": {"name": "knowledge_lookup", "result": result_text},
+                }
+            )
+            api_results.append(
+                {
+                    "type": "tool_result",
+                    "tool_use_id": tu.id,
+                    "content": result_text,
+                }
+            )
 
-        # Record the (possibly edited) tool call.
-        steps.append(
-            {
-                "type": "tool_call",
-                "content": {"name": "knowledge_lookup", "input": effective_input},
-            }
-        )
-
-        result_text = run_knowledge_lookup(effective_input.get("query_key", ""))
-        steps.append(
-            {
-                "type": "tool_result",
-                "content": {"name": "knowledge_lookup", "result": result_text},
-            }
-        )
-
-        # Continue the real conversation with the (effective) tool result so the
-        # model's subsequent output reflects the steered input.
+        # Continue the real conversation with the (effective) tool result(s) so
+        # the model's subsequent output reflects the steered input.
         messages.append({"role": "assistant", "content": resp.content})
-        messages.append(
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": tool_use.id,
-                        "content": result_text,
-                    }
-                ],
-            }
-        )
+        messages.append({"role": "user", "content": api_results})
 
     return steps
 
