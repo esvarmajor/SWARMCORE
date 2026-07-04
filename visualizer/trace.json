@@ -1,0 +1,156 @@
+{
+  "task": "Research and draft a 150-word brief on the current state of small modular nuclear reactors (SMRs).",
+  "model": "claude-opus-4-8",
+  "_placeholder": "STRUCTURAL PLACEHOLDER FOR VISUAL TESTING \u2014 replace with real generated trace",
+  "orchestrator": {
+    "planning_text": "I need to decompose this into research, analysis, then writing. Research should gather current deployment facts; analysis should weigh economics and status; writing should compress to ~150 words.",
+    "subtasks": [
+      {
+        "id": "t1",
+        "role": "research",
+        "instruction": "Search for the current commercial and licensing status of small modular reactors in 2024-2025."
+      },
+      {
+        "id": "t2",
+        "role": "analyze",
+        "instruction": "Assess the key facts on SMR capacity, deployment status, and economics."
+      },
+      {
+        "id": "t3",
+        "role": "write",
+        "instruction": "Draft a 150-word brief synthesizing the research and analysis."
+      }
+    ]
+  },
+  "subagents": [
+    {
+      "id": "t1",
+      "role": "research",
+      "steps": [
+        {
+          "type": "reasoning",
+          "content": "I'll search for current SMR deployment and licensing status.",
+          "timestamp_ms": 0
+        },
+        {
+          "type": "tool_call",
+          "content": {
+            "name": "web_search",
+            "input": {
+              "query": "small modular reactor status 2025 commercial deployment"
+            }
+          },
+          "timestamp_ms": 1100
+        },
+        {
+          "type": "tool_result",
+          "content": {
+            "name": "web_search",
+            "results": [
+              {
+                "title": "SMRs: where the first commercial units stand",
+                "url": "https://example.org/smr"
+              },
+              {
+                "title": "NuScale, BWRX-300 and the 2025 order book",
+                "url": "https://example.org/orders"
+              }
+            ]
+          },
+          "timestamp_ms": 2200
+        },
+        {
+          "type": "reasoning",
+          "final": true,
+          "content": "Only a few SMRs operate commercially (Russia's Akademik Lomonosov, China's HTR-PM); most Western designs remain in licensing or early construction.",
+          "timestamp_ms": 3300
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "role": "analyze",
+      "steps": [
+        {
+          "type": "reasoning",
+          "content": "Let me pull the capacity definition first, then economics.",
+          "timestamp_ms": 4400
+        },
+        {
+          "type": "checkpoint",
+          "simulated_steering": true,
+          "content": {
+            "tool": "knowledge_lookup",
+            "original_input": {
+              "query_key": "smr_capacity"
+            },
+            "edited_input": {
+              "query_key": "smr_economics"
+            },
+            "rationale": "redirected: prioritize economics/cost evidence over generic capacity facts for a decision-useful brief"
+          },
+          "timestamp_ms": 5500
+        },
+        {
+          "type": "tool_call",
+          "content": {
+            "name": "knowledge_lookup",
+            "input": {
+              "query_key": "smr_economics"
+            }
+          },
+          "timestamp_ms": 6600
+        },
+        {
+          "type": "tool_result",
+          "content": {
+            "name": "knowledge_lookup",
+            "result": "SMR economics hinge on factory serialization; NuScale/UAMPS cancelled 2023 above ~$89/MWh; data-center PPAs now drive momentum."
+          },
+          "timestamp_ms": 7700
+        },
+        {
+          "type": "reasoning",
+          "final": true,
+          "content": "Economics are the crux: first-of-a-kind costs are high, but data-center demand is reviving the order book.",
+          "timestamp_ms": 8800
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "role": "write",
+      "steps": [
+        {
+          "type": "reasoning",
+          "content": "I'll confirm the deployment status fact before drafting.",
+          "timestamp_ms": 9900
+        },
+        {
+          "type": "tool_call",
+          "content": {
+            "name": "knowledge_lookup",
+            "input": {
+              "query_key": "smr_deployment_status"
+            }
+          },
+          "timestamp_ms": 11000
+        },
+        {
+          "type": "tool_result",
+          "content": {
+            "name": "knowledge_lookup",
+            "result": "Only a handful operate commercially: Akademik Lomonosov (2x35 MWe) and HTR-PM (210 MWe); others in licensing."
+          },
+          "timestamp_ms": 12100
+        },
+        {
+          "type": "reasoning",
+          "final": true,
+          "content": "Small modular reactors (SMRs) \u2014 factory-built units under 300 MWe \u2014 remain mostly pre-commercial. Only Russia's floating Akademik Lomonosov and China's HTR-PM operate today; NuScale, GE-Hitachi's BWRX-300, Rolls-Royce and X-energy sit in licensing or early build. Economics are the hinge: first-of-a-kind costs are steep, and the 2023 NuScale/UAMPS cancellation showed the risk, yet surging data-center power demand is reviving order books. Proponents cite passive safety, siting flexibility, and load-following value. The next few years of first-of-a-kind construction will decide whether serialized factory production can deliver the promised cost curve.",
+          "timestamp_ms": 13200
+        }
+      ]
+    }
+  ]
+}
