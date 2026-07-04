@@ -1,13 +1,14 @@
 # SWARMCORE
 
 **A one-time-generated, replayable visualization of a multi-agent AI system's
-reasoning trace — styled as a bio-mechanical neural interface (SHODAN / *System
-Shock* aesthetic).**
+reasoning trace — a human face rendered entirely in living code, on a dark
+bio-mechanical / *System Shock* terminal.**
 
-A dark canvas, a glowing green "face made of code" whose two eyes flare and
-whose circuit-tendrils radiate outward, and a live terminal readout printing an
-agent swarm's actual reasoning as it replays. Built to be **screen-recorded** as
-a clean 15–25 second loop for a portfolio.
+A dense green field of monospace characters out of which a **face made of code**
+slowly resolves as three AI sub-agents do their work, alongside a live terminal
+readout printing the swarm's actual reasoning. On the human-steering checkpoint
+the whole face flushes amber. Built to be **screen-recorded** as a clean 15–25
+second loop for a portfolio.
 
 ![status: EXECUTING / AWAITING INPUT / COMPLETE](https://img.shields.io/badge/status-EXECUTING%20%E2%86%92%20AWAITING%20INPUT%20%E2%86%92%20COMPLETE-39ff8a?labelColor=03060a)
 
@@ -133,23 +134,24 @@ frontend can animate the replay at a natural pace.
 
 ## The visualization
 
-- **The face.** A central pair of glowing eyes with light-ray flares, built from
-  a symmetric mesh of tapering circuit-tendrils over a starfield — a face made of
-  code. The three sub-agents fan downward from a reactor **core** node like a jaw;
-  each tool call sprouts a satellite node further out along an organic bezier
-  tendril.
+- **The face.** The centrepiece is a **typographic portrait** — a human face
+  rendered entirely out of a dense field of monospace characters (a face *made of
+  code*, drawn on an HTML canvas). The face is not pre-baked: it **materialises out
+  of the noise** as the trace replays, brightening region by region as the three
+  agents work, and holds fully-resolved on the `COMPLETE` state before the loop
+  dissolves it back into code. Real words pulled from the trace (tool names,
+  `SMR`, `ORCHESTRATOR`, …) are scattered faintly through the field.
 - **Palette.** Near-black background (`#03060a`→`#060c08`) with a faint circuit
   texture and vignette; acid-green core `#39ff8a`, chrome-teal `#7fffd4`, amber
   checkpoint `#ffbe3d`, breach red `#ff3b3b`, chrome node borders `#dfe9e6`.
-- **Replay.** As the trace plays in timestamp order, a glowing **packet** travels
-  along the relevant branch on each `tool_call` / `tool_result`, and the active
-  node brightens and scales up. The eyes pulse and breathe, and blink
-  occasionally.
-- **The checkpoint moment.** The relevant branch flashes amber, a **scanline
-  sweep** crosses the whole canvas, the eyes turn **amber** (`STATUS: AWAITING
-  INPUT`), and the side terminal prints the original-vs-edited instruction and
-  rationale with a typewriter effect. It holds ~2.5 s, flashes back to green, and
-  resumes.
+- **Replay.** As the trace plays in timestamp order, each step lights the active
+  agent's zone of the face and fires an expanding **burst** of bright characters
+  on every `tool_call` / `tool_result`. A slow scan-line and per-cell shimmer keep
+  the whole field alive.
+- **The checkpoint moment.** The **entire code-face flushes amber**, a **scanline
+  sweep** crosses the canvas (`STATUS: AWAITING INPUT`), and the side terminal
+  prints the original-vs-edited instruction and rationale with a typewriter
+  effect. It holds ~2.5 s, then snaps back to green and resumes.
 - **HUD.** A persistent header with the task name, an elapsed-time clock, and a
   `STATUS` readout that changes colour with state
   (`EXECUTING` → `AWAITING INPUT` → `COMPLETE`).
@@ -157,9 +159,9 @@ frontend can animate the replay at a natural pace.
   scanline overlay, and a 1-frame chromatic-aberration glitch on state
   transitions.
 
-All graphics are **SVG** with `<feGaussianBlur>` + `<feMerge>` neon-bloom
-filters. No frameworks, no external requests, no fonts fetched — it works fully
-offline.
+The portrait is drawn on a **`<canvas>`** (procedural face-luminance mask →
+per-character brightness), with SVG-free CSS effects for the sweep and glitch. No
+frameworks, no external requests, no fonts fetched — it works fully offline.
 
 ---
 

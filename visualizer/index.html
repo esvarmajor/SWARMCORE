@@ -10,7 +10,7 @@
     --chrome-teal:#7fffd4; /* secondary chrome-teal accent   */
     --amber:#ffbe3d;       /* warning / checkpoint            */
     --breach:#ff3b3b;      /* alert / breach red              */
-    --chrome:#dfe9e6;      /* chrome highlight (node borders) */
+    --chrome:#dfe9e6;      /* chrome highlight                */
     --ink:#8fb9ad;         /* dim terminal text               */
     --bg0:#03060a;
     --bg1:#060c08;
@@ -20,7 +20,7 @@
   html,body{height:100%;margin:0}
   body{
     background:
-      radial-gradient(ellipse 120% 90% at 40% 30%, #071310 0%, var(--bg1) 42%, var(--bg0) 100%);
+      radial-gradient(ellipse 120% 90% at 45% 34%, #071310 0%, var(--bg1) 44%, var(--bg0) 100%);
     color:var(--chrome-teal);
     font-family:var(--mono);
     overflow:hidden;
@@ -28,29 +28,26 @@
   }
   /* faint fixed circuit-board texture */
   body::before{
-    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.045;
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.04;
     background-image:
       linear-gradient(0deg,transparent 0 23px,rgba(57,255,138,.6) 23px 24px),
-      linear-gradient(90deg,transparent 0 23px,rgba(57,255,138,.6) 23px 24px),
-      radial-gradient(circle at 24px 24px, rgba(127,255,212,.9) 0 1.4px, transparent 1.6px);
-    background-size:24px 24px,24px 24px,24px 24px;
+      linear-gradient(90deg,transparent 0 23px,rgba(57,255,138,.6) 23px 24px);
+    background-size:24px 24px,24px 24px;
   }
-  /* soft vignette */
   body::after{
     content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
-    background:radial-gradient(ellipse 75% 70% at 45% 45%, transparent 55%, rgba(0,0,0,.72) 100%);
+    background:radial-gradient(ellipse 78% 74% at 46% 44%, transparent 52%, rgba(0,0,0,.78) 100%);
   }
 
   #app{position:relative;z-index:2;display:flex;height:100vh;width:100vw}
-  #stage{position:relative;flex:1 1 auto;min-width:0}
-  svg#graph{position:absolute;inset:0;width:100%;height:100%}
+  #stage{position:relative;flex:1 1 auto;min-width:0;overflow:hidden}
+  canvas#face{position:absolute;inset:0;width:100%;height:100%;display:block}
 
   /* ---- HUD header ---- */
   #hud{
     position:absolute;top:0;left:0;right:0;z-index:5;
-    display:flex;align-items:center;gap:18px;
-    padding:16px 22px;
-    background:linear-gradient(180deg, rgba(3,8,7,.86) 0%, rgba(3,8,7,0) 100%);
+    display:flex;align-items:center;gap:18px;padding:16px 22px;
+    background:linear-gradient(180deg, rgba(3,8,7,.9) 0%, rgba(3,8,7,0) 100%);
     pointer-events:none;
   }
   #hud .brand{
@@ -66,9 +63,8 @@
   #hud .clock{font-size:13px;color:var(--chrome);opacity:.85;letter-spacing:.08em;font-variant-numeric:tabular-nums}
   #status{
     font-size:11.5px;font-weight:700;letter-spacing:.24em;padding:6px 13px;border-radius:2px;
-    border:1px solid currentColor;white-space:nowrap;
-    color:var(--core);box-shadow:0 0 14px rgba(57,255,138,.25) inset;
-    transition:color .35s ease, box-shadow .35s ease;
+    border:1px solid currentColor;white-space:nowrap;color:var(--core);
+    box-shadow:0 0 14px rgba(57,255,138,.25) inset;transition:color .35s ease, box-shadow .35s ease;
   }
   #status.await{color:var(--amber);box-shadow:0 0 16px rgba(255,190,61,.3) inset}
   #status.done{color:var(--chrome-teal);box-shadow:0 0 16px rgba(127,255,212,.28) inset}
@@ -90,7 +86,6 @@
   #terminal .thead .dot{width:7px;height:7px;border-radius:50%;background:var(--core);
     box-shadow:0 0 8px var(--core);animation:pulseDot 1.4s ease-in-out infinite}
   @keyframes pulseDot{0%,100%{opacity:.35}50%{opacity:1}}
-  @keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.9}}
   #log{
     flex:1 1 auto;overflow:hidden;padding:12px 16px 8px;
     font-size:12px;line-height:1.5;color:var(--ink);
@@ -98,7 +93,7 @@
   }
   #log .line{opacity:0;transform:translateY(6px);animation:lineIn .32s ease forwards}
   @keyframes lineIn{to{opacity:1;transform:none}}
-  #log .tag{display:inline-block;min-width:0;font-weight:700;letter-spacing:.06em}
+  #log .tag{font-weight:700;letter-spacing:.06em}
   #log .t-research{color:var(--chrome-teal)}
   #log .t-analyze{color:#b8f7ff}
   #log .t-write{color:var(--core)}
@@ -116,7 +111,6 @@
   #log .cp .k{color:#ffd98a}
   #cursor{color:var(--core);animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
-  /* scanline overlay on terminal */
   #terminal::after{
     content:"";position:absolute;inset:0;pointer-events:none;z-index:3;
     background:repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.16) 2px 3px);
@@ -129,25 +123,24 @@
     background:linear-gradient(90deg, transparent 0%, rgba(255,190,61,.02) 40%,
       rgba(255,190,61,.16) 49%, rgba(255,214,138,.5) 50%, rgba(255,190,61,.16) 51%,
       rgba(255,190,61,.02) 60%, transparent 100%);
-    transform:translateX(-100%);
+    transform:translateX(-100%);mix-blend-mode:screen;
   }
   #sweep.run{animation:sweep 1.25s cubic-bezier(.4,0,.2,1) 1}
   @keyframes sweep{0%{opacity:0;transform:translateX(-100%)}8%{opacity:1}
     92%{opacity:1}100%{opacity:0;transform:translateX(100%)}}
 
   /* chromatic-aberration glitch on state transitions */
-  #stage.glitch #graph{animation:aberr .34s steps(2) 2}
+  #stage.glitch canvas#face{animation:aberr .34s steps(2) 2}
   @keyframes aberr{
     0%{filter:none}
-    50%{filter:drop-shadow(2px 0 0 rgba(255,59,59,.55)) drop-shadow(-2px 0 0 rgba(127,255,212,.55))}
+    50%{filter:drop-shadow(2px 0 0 rgba(255,59,59,.6)) drop-shadow(-2px 0 0 rgba(127,255,212,.6))}
     100%{filter:none}
   }
 
   /* ---- controls ---- */
   #controls{
     position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:7;
-    display:flex;align-items:center;gap:10px;
-    padding:9px 12px;border-radius:4px;
+    display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:4px;
     background:rgba(4,11,9,.72);border:1px solid rgba(127,255,212,.18);
     box-shadow:0 8px 30px -12px rgba(0,0,0,.7), inset 0 0 20px rgba(57,255,138,.05);
     backdrop-filter:blur(3px);
@@ -173,13 +166,13 @@
 <body>
 <div id="app">
   <div id="stage">
+    <canvas id="face"></canvas>
     <div id="hud">
       <div class="brand">SWARMCORE<span class="tick"> ◇ </span></div>
       <div class="task" id="taskLine">—</div>
       <div class="clock" id="clock">00:00.0</div>
       <div id="status">INITIALIZING</div>
     </div>
-    <svg id="graph" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
     <div id="sweep"></div>
     <div id="controls">
       <button id="btnPlay">❚❚ PAUSE</button>
@@ -200,7 +193,6 @@
 "use strict";
 (function(){
 
-// ------------------------------------------------------------------ load
 function boot(trace){ try { new Swarmcore(trace).start(); } catch(e){ showError(e); } }
 function showError(e){
   document.getElementById("log").innerHTML =
@@ -209,382 +201,182 @@ function showError(e){
   console.error(e);
 }
 
-// --------------------------------------------------------- math helpers
-function bez(p0,c1,c2,p3,t){
-  var u=1-t, a=u*u*u, b=3*u*u*t, c=3*u*t*t, d=t*t*t;
-  return { x:a*p0.x+b*c1.x+c*c2.x+d*p3.x, y:a*p0.y+b*c1.y+c*c2.y+d*p3.y };
-}
-function bezTan(p0,c1,c2,p3,t){
-  var u=1-t;
-  var x=3*u*u*(c1.x-p0.x)+6*u*t*(c2.x-c1.x)+3*t*t*(p3.x-c2.x);
-  var y=3*u*u*(c1.y-p0.y)+6*u*t*(c2.y-c1.y)+3*t*t*(p3.y-c2.y);
-  var m=Math.hypot(x,y)||1; return {x:x/m,y:y/m};
-}
-// filled tapering "dendrite" ribbon around a cubic bezier
-function taperRibbon(p0,c1,c2,p3,wBase,wTip,n){
-  var L=[],R=[];
-  for(var i=0;i<=n;i++){
-    var t=i/n, pt=bez(p0,c1,c2,p3,t), tn=bezTan(p0,c1,c2,p3,t);
-    var nx=-tn.y, ny=tn.x, w=(wBase+(wTip-wBase)*t)/2;
-    L.push([pt.x+nx*w, pt.y+ny*w]);
-    R.push([pt.x-nx*w, pt.y-ny*w]);
-  }
-  var d="M"+L[0][0].toFixed(1)+" "+L[0][1].toFixed(1);
-  for(var j=1;j<L.length;j++) d+="L"+L[j][0].toFixed(1)+" "+L[j][1].toFixed(1);
-  for(var k=R.length-1;k>=0;k--) d+="L"+R[k][0].toFixed(1)+" "+R[k][1].toFixed(1);
-  return d+"Z";
-}
-function centerPath(p0,c1,c2,p3){
-  return "M"+p0.x+" "+p0.y+"C"+c1.x+" "+c1.y+" "+c2.x+" "+c2.y+" "+p3.x+" "+p3.y;
-}
-var NS="http://www.w3.org/2000/svg";
-function el(tag,attrs){ var e=document.createElementNS(NS,tag);
-  if(attrs) for(var k in attrs) e.setAttribute(k,attrs[k]); return e; }
+// ------------------------------------------------------------- helpers
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+function smooth(x){ x=clamp(x,0,1); return x*x*(3-2*x); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+var CHARS="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/\\|{}[]#*+=~:;$%&".split("");
+function esc(s){ return String(s==null?"":s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function clip(s,n){ s=String(s==null?"":s); return s.length>n?s.slice(0,n-1)+"…":s; }
 
-// --------------------------------------------------------------- engine
+// pacing (ms of trace time per step type) + hold/loop
+var DUR={reasoning:1000,reasoningFinal:1600,tool_call:1250,tool_result:1250,checkpoint:2900};
+var END_HOLD=2400;
+
+// ================================================================= engine
 function Swarmcore(trace){
   this.trace=trace;
-  this.speed=1;
-  this.playing=true;
-  this.svg=document.getElementById("graph");
+  this.speed=1; this.playing=true;
+  this.canvas=document.getElementById("face");
+  this.ctx=this.canvas.getContext("2d");
   this.log=document.getElementById("log");
   this.statusEl=document.getElementById("status");
   this.clockEl=document.getElementById("clock");
   this.stage=document.getElementById("stage");
   this.sweep=document.getElementById("sweep");
-  this._built=false;
 }
 
 Swarmcore.prototype.start=function(){
-  window.SC=this; // handle for debugging / scripted capture
+  window.SC=this;
   document.getElementById("taskLine").innerHTML =
     "TASK ▸ <b>"+esc(this.trace.task)+"</b>";
   this.buildModel();
-  this.render();
+  this.buildWords();
+  this.setupCanvas();
   this.bindControls();
   this.reset();
+
   var self=this;
-  this._last=performance.now();
+  window.addEventListener("resize",function(){ self.setupCanvas(); });
+  this._last=performance.now(); this._faceLast=0;
   function pump(){ self.tick(performance.now()); }
-  // rAF gives 60fps smoothness when the tab is visible...
   (function raf(){ pump(); requestAnimationFrame(raf); })();
-  // ...and a timer keeps the replay advancing even if rAF is throttled
-  // (backgrounded tab / some screen-record setups). dt is measured from a
-  // shared timestamp so the two drivers never double-count.
-  setInterval(pump, 33);
+  setInterval(pump,33);  // keeps advancing if rAF is throttled
 };
 
-// ---- build node/edge model + event schedule from the trace ----
-var DUR={reasoning:1000,reasoningFinal:1600,tool_call:1250,tool_result:1250,checkpoint:2900};
-var END_HOLD=2200, PACKET=720;
-// Face-forward layout: two eyes up top, a reactor CORE below them, and the
-// three sub-agents fan DOWNWARD like a jaw of glowing veins.
-var C={x:500,y:560}, R1=182, R2=118;
-// y-down coords: 90deg = straight down. Fan the roles symmetrically.
-var ROLE_ANGLE={research:132, analyze:90, write:48};
-var EYE={y:388,dx:150,r:37};
-
+// ---- flatten the trace into a scheduled event list ----
 Swarmcore.prototype.buildModel=function(){
-  var t=this.trace, self=this;
-  this.nodes={core:{x:C.x,y:C.y,r:38}};
-  this.agents=[];
-  var events=[];
-
-  t.subagents.forEach(function(ag,ai){
-    var deg=ROLE_ANGLE[ag.role]; if(deg==null) deg=[132,90,48][ai%3];
-    var A=deg*Math.PI/180;
-    var dir={x:Math.cos(A),y:Math.sin(A)};
-    var perp={x:-dir.y,y:dir.x};
-    var S={x:C.x+dir.x*R1, y:C.y+dir.y*R1};
-    var wob=(ai%2?1:-1)*30;
-    var c1={x:C.x+dir.x*R1*0.34+perp.x*wob, y:C.y+dir.y*R1*0.34+perp.y*wob};
-    var c2={x:S.x-dir.x*R1*0.30+perp.x*wob*0.7, y:S.y-dir.y*R1*0.30+perp.y*wob*0.7};
-    var agent={ role:ag.role, id:ag.id, pos:S, dir:dir,
-      tendril:{ p0:C,c1:c1,c2:c2,p3:S }, sats:[] };
-
-    // count tool calls -> satellites, lay them out on an outward arc
-    var nSat=ag.steps.filter(function(s){return s.type==="tool_call";}).length;
-    var baseAng=Math.atan2(dir.y,dir.x);
-    for(var si=0; si<nSat; si++){
-      var off=(nSat===1)?0:((si-(nSat-1)/2)*0.5);
-      var sa=baseAng+off;
-      var sdir={x:Math.cos(sa),y:Math.sin(sa)};
-      var sperp={x:-sdir.y,y:sdir.x};
-      var P={x:S.x+sdir.x*R2, y:S.y+sdir.y*R2};
-      var sw=(si%2?1:-1)*22;
-      var sc1={x:S.x+sdir.x*R2*0.35+sperp.x*sw, y:S.y+sdir.y*R2*0.35+sperp.y*sw};
-      var sc2={x:P.x-sdir.x*R2*0.30+sperp.x*sw, y:P.y-sdir.y*R2*0.30+sperp.y*sw};
-      agent.sats.push({ pos:P, tendril:{p0:S,c1:sc1,c2:sc2,p3:P},
-        // full path core->subagent->satellite for packet travel
-        full:{a:{p0:C,c1:c1,c2:c2,p3:S}, b:{p0:S,c1:sc1,c2:sc2,p3:P}}, active:false });
-    }
-    self.agents.push(agent);
-
-    // tag steps with satellite index + build event list
-    var satCounter=-1, lastSat=-1;
+  var events=[], self=this;
+  this.trace.subagents.forEach(function(ag,ai){
     ag.steps.forEach(function(step){
-      var satIdx=null;
-      if(step.type==="tool_call"){ satCounter++; lastSat=satCounter; satIdx=satCounter; }
-      else if(step.type==="tool_result"){ satIdx=lastSat; }
-      else if(step.type==="checkpoint"){ satIdx=satCounter+1; } // upcoming call
       var dur = step.type==="checkpoint" ? DUR.checkpoint
               : (step.type==="reasoning" && step.final) ? DUR.reasoningFinal
               : DUR[step.type] || 1000;
-      events.push({ agentIdx:ai, satIdx:satIdx, step:step, dur:dur });
+      events.push({ai:ai, role:ag.role, step:step, dur:dur});
     });
   });
-
-  // schedule (start times) along a single timeline
-  var tt=0;
-  events.forEach(function(ev){ ev.start=tt; tt+=ev.dur; });
+  var t=0; events.forEach(function(ev){ ev.start=t; t+=ev.dur; });
   this.events=events;
-  this.total=tt;
-  this.loopEnd=tt+END_HOLD;
+  this.total=t;
+  this.loopEnd=t+END_HOLD;
+  this.nAgents=this.trace.subagents.length;
 };
 
-// ---- render SVG ----
-Swarmcore.prototype.render=function(){
-  var svg=this.svg;
-  // defs: neon bloom filters + gradients
-  var defs=el("defs");
-  defs.innerHTML =
-    '<filter id="bloom" x="-60%" y="-60%" width="220%" height="220%">'+
-      '<feGaussianBlur stdDeviation="2.4" result="b"/>'+
-      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
-    '<filter id="bloomBig" x="-120%" y="-120%" width="340%" height="340%">'+
-      '<feGaussianBlur stdDeviation="7" result="b1"/>'+
-      '<feGaussianBlur stdDeviation="3" result="b2"/>'+
-      '<feMerge><feMergeNode in="b1"/><feMergeNode in="b2"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
-    '<radialGradient id="coreFill" cx="42%" cy="38%" r="70%">'+
-      '<stop offset="0%" stop-color="#d9fff0"/>'+
-      '<stop offset="35%" stop-color="#39ff8a"/>'+
-      '<stop offset="100%" stop-color="#063d27"/></radialGradient>'+
-    '<radialGradient id="nodeFill" cx="42%" cy="38%" r="70%">'+
-      '<stop offset="0%" stop-color="#bafce3"/>'+
-      '<stop offset="45%" stop-color="#2fe0a4"/>'+
-      '<stop offset="100%" stop-color="#053026"/></radialGradient>'+
-    '<radialGradient id="eyeFill" cx="46%" cy="42%" r="60%">'+
-      '<stop offset="0%" stop-color="#ffffff"/>'+
-      '<stop offset="20%" stop-color="#d4fff2"/>'+
-      '<stop offset="52%" stop-color="#39ff8a"/>'+
-      '<stop offset="100%" stop-color="#053a26"/></radialGradient>'+
-    '<radialGradient id="eyeFillAmber" cx="46%" cy="42%" r="60%">'+
-      '<stop offset="0%" stop-color="#ffffff"/>'+
-      '<stop offset="20%" stop-color="#ffe9b0"/>'+
-      '<stop offset="52%" stop-color="#ffbe3d"/>'+
-      '<stop offset="100%" stop-color="#3a2600"/></radialGradient>'+
-    '<filter id="eyeBloom" x="-150%" y="-150%" width="400%" height="400%">'+
-      '<feGaussianBlur stdDeviation="9" result="e1"/>'+
-      '<feGaussianBlur stdDeviation="3" result="e2"/>'+
-      '<feMerge><feMergeNode in="e1"/><feMergeNode in="e2"/>'+
-      '<feMergeNode in="SourceGraphic"/></feMerge></filter>';
-  svg.appendChild(defs);
-
-  // paint order (back -> front): stars, decorative face veins, ambient
-  // pulses, eyes, then the live agent graph on top.
-  this.gStars=el("g");     svg.appendChild(this.gStars);
-  this.gDeco=el("g");      svg.appendChild(this.gDeco);
-  this.gDecoPulse=el("g"); svg.appendChild(this.gDecoPulse);
-  this.gEyes=el("g");      svg.appendChild(this.gEyes);
-  this.gTendril=el("g");   svg.appendChild(this.gTendril); // tendrils behind
-  this.gPacket=el("g");    svg.appendChild(this.gPacket);  // packets mid
-  this.gNode=el("g");      svg.appendChild(this.gNode);    // nodes front
-
-  this.decoPaths=[];
-  this.buildFace();
-
-  var self=this;
-  // core -> subagent tendrils + satellite tendrils
-  this.agents.forEach(function(ag){
-    // core->subagent ribbon
-    ag.tEl=self.tendril(ag.tendril,7,2.4);
-    ag.sats.forEach(function(s){
-      s.tEl=self.tendril(s.tendril,4,1.4);
-      // hidden centerline paths for packet motion
-      s._pa=el("path",{d:centerPath(s.full.a.p0,s.full.a.c1,s.full.a.c2,s.full.a.p3),fill:"none"});
-      s._pb=el("path",{d:centerPath(s.full.b.p0,s.full.b.c1,s.full.b.c2,s.full.b.p3),fill:"none"});
-      s._pa.style.visibility="hidden"; s._pb.style.visibility="hidden";
-      self.gTendril.appendChild(s._pa); self.gTendril.appendChild(s._pb);
-      s._la=s._pa.getTotalLength(); s._lb=s._pb.getTotalLength();
+// ---- words scattered into the field (drawn from the real trace) ----
+Swarmcore.prototype.buildWords=function(){
+  var pool={};
+  var add=function(s){ (String(s).toUpperCase().match(/[A-Z]{4,14}/g)||[])
+    .forEach(function(w){ pool[w]=1; }); };
+  add(this.trace.task); add("SWARMCORE ORCHESTRATOR RESEARCH ANALYZE WRITE CORE AGENT");
+  this.trace.subagents.forEach(function(ag){
+    ag.steps.forEach(function(s){
+      if(s.type==="tool_call") add(s.content.name+" "+JSON.stringify(s.content.input));
+      else if(s.type==="reasoning") add(s.content);
+      else if(s.type==="checkpoint") add("STEERING CHECKPOINT "+s.content.tool);
     });
   });
-
-  // nodes: satellites, then subagents, then core (draw order = layering)
-  this.agents.forEach(function(ag){
-    ag.sats.forEach(function(s){ s.nodeEl=self.node(s.pos,10,"sat"); });
-  });
-  this.agents.forEach(function(ag){
-    ag.nodeEl=self.node(ag.pos,20,"agent");
-    var lbl=el("text",{x:ag.pos.x, y:ag.pos.y+ (ag.dir.y>0.2?42:-30),
-      "text-anchor":"middle","font-family":"var(--mono)","font-size":"13",
-      "letter-spacing":"3","fill":"var(--chrome)","opacity":"0.82"});
-    lbl.textContent=ag.role.toUpperCase();
-    self.gNode.appendChild(lbl);
-  });
-  this.coreEl=this.node(C,38,"core");
-  var clbl=el("text",{x:C.x,y:C.y+4,"text-anchor":"middle",
-    "font-family":"var(--mono)","font-size":"12","letter-spacing":"3",
-    "font-weight":"700","fill":"#04150e"});
-  clbl.textContent="CORE"; this.gNode.appendChild(clbl);
+  var arr=Object.keys(pool).filter(function(w){return w.length>=4;});
+  // stable-ish shuffle
+  for(var i=arr.length-1;i>0;i--){ var j=(i*7+13)%(i+1); var t=arr[i];arr[i]=arr[j];arr[j]=t; }
+  this.words=arr.slice(0,90);
 };
 
-Swarmcore.prototype.tendril=function(T,wb,wt){
-  var d=taperRibbon(T.p0,T.c1,T.c2,T.p3,wb,wt,26);
-  var base=el("path",{d:d,fill:"rgba(57,255,138,0.10)",filter:"url(#bloom)"});
-  var glow=el("path",{d:d,fill:"rgba(127,255,212,0.28)",filter:"url(#bloom)",opacity:"0.0"});
-  this.gTendril.appendChild(base); this.gTendril.appendChild(glow);
-  return {base:base,glow:glow};
+// ---- canvas + grid + procedural face-luminance mask ----
+Swarmcore.prototype.setupCanvas=function(){
+  var c=this.canvas, r=c.getBoundingClientRect();
+  var dpr=Math.min(window.devicePixelRatio||1, 2);
+  this.W=Math.max(320,r.width); this.H=Math.max(320,r.height);
+  c.width=Math.round(this.W*dpr); c.height=Math.round(this.H*dpr);
+  this.ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  this.cellW=Math.max(9, this.W/78);
+  this.cellH=this.cellW*1.16;
+  this.cols=Math.ceil(this.W/this.cellW);
+  this.rows=Math.ceil(this.H/this.cellH);
+  this.fontPx=this.cellH*0.94;
+
+  this.buildMask();
+  this.initGrid();
 };
 
-Swarmcore.prototype.node=function(p,r,kind){
-  var g=el("g",{transform:"translate("+p.x+" "+p.y+")"});
-  var fill = kind==="core"?"url(#coreFill)":"url(#nodeFill)";
-  var halo=el("circle",{r:r*2.1,fill:kind==="core"?"rgba(57,255,138,.32)":"rgba(57,255,138,.20)",
-    filter:"url(#bloomBig)",opacity:kind==="core"?"1":"0.5"});
-  var ring=el("circle",{r:r,fill:fill,stroke:"var(--chrome)",
-    "stroke-width":kind==="sat"?1.2:1.8,"stroke-opacity":kind==="sat"?.7:.9,filter:"url(#bloom)"});
-  var spark=el("circle",{r:r*0.34,cx:-r*0.22,cy:-r*0.24,fill:"#eafff6",opacity:kind==="sat"?.6:.9});
-  g.appendChild(halo);g.appendChild(ring);g.appendChild(spark);
-  this.gNode.appendChild(g);
-  return {g:g,halo:halo,ring:ring,r:r};
+// paint a head/face on a small canvas, read luminance per grid cell
+Swarmcore.prototype.buildMask=function(){
+  var cols=this.cols, rows=this.rows;
+  var m=document.createElement("canvas"); m.width=cols; m.height=rows;
+  var x=m.getContext("2d");
+  var W=cols, H=rows, cx=W*0.5;
+  x.fillStyle="#000"; x.fillRect(0,0,W,H);
+
+  function glow(px,py,rx,ry,a){
+    x.save(); x.translate(px,py); x.scale(1, ry/rx);
+    var g=x.createRadialGradient(0,0,0,0,0,rx);
+    g.addColorStop(0,"rgba(255,255,255,"+a+")");
+    g.addColorStop(1,"rgba(255,255,255,0)");
+    x.fillStyle=g; x.beginPath(); x.arc(0,0,rx,0,7); x.fill(); x.restore();
+  }
+  // additive light: cranium, jaw, cheeks, nose, neck, shoulders
+  x.globalCompositeOperation="lighter";
+  glow(cx,        H*0.34, W*0.245, H*0.315, 1.00); // cranium
+  glow(cx,        H*0.51, W*0.195, H*0.205, 0.98); // jaw / chin
+  glow(cx,        H*0.25, W*0.155, H*0.090, 0.52); // forehead
+  glow(cx-W*0.110,H*0.45, W*0.085, H*0.095, 0.55); // left cheek
+  glow(cx+W*0.110,H*0.45, W*0.085, H*0.095, 0.55); // right cheek
+  glow(cx,        H*0.44, W*0.030, H*0.100, 0.55); // nose ridge
+  glow(cx,        H*0.68, W*0.100, H*0.150, 0.55); // neck
+  glow(cx,        H*0.97, W*0.42,  H*0.150, 0.50); // shoulders (a hint)
+
+  // subtractive shadow: eye sockets, brow, temples, nostrils, mouth
+  x.globalCompositeOperation="source-over";
+  function dark(px,py,rx,ry,a){
+    x.save(); x.translate(px,py); x.scale(1, ry/rx);
+    var g=x.createRadialGradient(0,0,0,0,0,rx);
+    g.addColorStop(0,"rgba(0,0,0,"+a+")");
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    x.fillStyle=g; x.beginPath(); x.arc(0,0,rx,0,7); x.fill(); x.restore();
+  }
+  var eyY=H*0.40, eDX=W*0.102;
+  dark(cx-eDX, eyY, W*0.058, H*0.045, 0.98); // left eye socket
+  dark(cx+eDX, eyY, W*0.058, H*0.045, 0.98); // right eye socket
+  dark(cx,     H*0.36, W*0.195,H*0.026,0.52); // brow band
+  dark(cx-W*0.185,H*0.35,W*0.055,H*0.17,0.72); // left temple (defines skull)
+  dark(cx+W*0.185,H*0.35,W*0.055,H*0.17,0.72); // right temple
+  dark(cx,     H*0.52, W*0.05, H*0.020,0.6);  // under-nose
+  dark(cx,     H*0.585,W*0.08, H*0.017,0.55); // mouth
+
+  // vignette so the head sits in a dark field of code
+  var vg=x.createRadialGradient(cx,H*0.42,H*0.06,cx,H*0.42,H*0.60);
+  vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(0.66,"rgba(0,0,0,0)");
+  vg.addColorStop(1,"rgba(0,0,0,0.97)");
+  x.fillStyle=vg; x.fillRect(0,0,W,H);
+
+  var img=x.getImageData(0,0,cols,rows).data;
+  this.mask=new Float32Array(cols*rows);
+  for(var i=0;i<cols*rows;i++){
+    var v=img[i*4]/255;
+    v=clamp((v-0.17)/0.72, 0, 1);   // contrast: crush background, lift the face
+    this.mask[i]=Math.pow(v,0.80);
+  }
 };
 
-// ---- SHODAN-style face: starfield, symmetric circuit veins, glowing eyes ----
-Swarmcore.prototype.buildFace=function(){
+Swarmcore.prototype.initGrid=function(){
+  var n=this.cols*this.rows;
+  this.ch=new Array(n);
+  this.phase=new Float32Array(n);   // reveal ordering
+  this.jit=new Float32Array(n);     // per-cell shimmer phase
+  for(var i=0;i<n;i++){
+    this.ch[i]=CHARS[(Math.random()*CHARS.length)|0];
+    this.phase[i]=Math.random();
+    this.jit[i]=Math.random()*6.28;
+  }
+  // stamp real words horizontally into random rows (faint code vocabulary)
   var self=this;
-
-  // starfield
-  for(var i=0;i<150;i++){
-    var sx=Math.random()*1000, sy=Math.random()*1000;
-    var rr=Math.random()<0.10?1.7:(Math.random()<0.4?1.0:0.6);
-    var st=el("circle",{cx:sx.toFixed(1),cy:sy.toFixed(1),r:rr,
-      fill:"#bfeee0",opacity:(0.10+Math.random()*0.5).toFixed(2)});
-    if(Math.random()<0.22){
-      st.style.animation="twinkle "+(2+Math.random()*3).toFixed(1)+"s ease-in-out infinite";
-      st.style.animationDelay=(Math.random()*3).toFixed(1)+"s";
-    }
-    this.gStars.appendChild(st);
-  }
-
-  // decorative circuit veins — define the right half, mirror to the left so
-  // the whole composition reads as a symmetric face made of code.
-  // each spec is a cubic bezier [p0,c1,c2,p3]. isPulse marks a flow carrier.
-  var specs=[
-    // crown spikes rising from the forehead
-    [[{x:558,y:330},{x:600,y:170},{x:690,y:150},{x:748,y:60}],  true ],
-    [[{x:600,y:352},{x:720,y:250},{x:800,y:230},{x:905,y:150}], false],
-    [[{x:530,y:300},{x:560,y:210},{x:600,y:150},{x:610,y:56}],  false],
-    // temple veins sweeping to the side
-    [[{x:664,y:388},{x:790,y:352},{x:860,y:376},{x:986,y:322}], true ],
-    [[{x:662,y:430},{x:800,y:470},{x:880,y:470},{x:996,y:472}], false],
-    [[{x:668,y:410},{x:800,y:412},{x:900,y:412},{x:998,y:398}], false],
-    // cheek / jaw veins flowing down and out
-    [[{x:604,y:520},{x:790,y:560},{x:864,y:646},{x:958,y:706}], true ],
-    [[{x:588,y:600},{x:748,y:706},{x:826,y:822},{x:902,y:936}], false],
-    [[{x:640,y:470},{x:820,y:520},{x:900,y:560},{x:996,y:600}], false],
-    // brow arc over the eye
-    [[{x:556,y:366},{x:600,y:344},{x:660,y:348},{x:704,y:372}], false],
-    // nose bridge from forehead down toward the reactor core
-    [[{x:522,y:300},{x:544,y:400},{x:534,y:486},{x:516,y:542}], false]
-  ];
-  specs.forEach(function(sp){
-    var pts=sp[0], pulse=sp[1];
-    self.decoTendril(pts,4.0,0.8,pulse);
-    var m=pts.map(function(p){return {x:1000-p.x,y:p.y};});
-    self.decoTendril(m,4.0,0.8,pulse);
+  (this.words||[]).forEach(function(w,k){
+    var row=2+((Math.random()*(self.rows-4))|0);
+    var col=1+((Math.random()*Math.max(1,self.cols-w.length-2))|0);
+    for(var q=0;q<w.length;q++){ self.ch[row*self.cols+col+q]=w[q]; }
   });
-
-  // ambient data pulses drifting along a subset of veins (living circuits)
-  this.decoPulses=[];
-  var carriers=this._pulseCarriers||[];
-  for(var k=0;k<carriers.length;k++){
-    var cp=carriers[k];
-    var dot=el("circle",{r:2.6,fill:"#d4fff2",filter:"url(#bloom)",opacity:"0"});
-    this.gDecoPulse.appendChild(dot);
-    this.decoPulses.push({path:cp,len:cp.getTotalLength(),dot:dot,
-      t:Math.random(),speed:0.05+Math.random()*0.07});
-  }
-
-  // eyes
-  var EL={x:500-EYE.dx,y:EYE.y}, ER={x:500+EYE.dx,y:EYE.y};
-  this.eyes=[this.makeEye(EL), this.makeEye(ER)];
-  this.eyeEnergy=0;
-};
-
-Swarmcore.prototype.decoTendril=function(pts,wb,wt,isPulse){
-  var d=taperRibbon(pts[0],pts[1],pts[2],pts[3],wb,wt,22);
-  this.gDeco.appendChild(el("path",{d:d,fill:"rgba(57,255,138,0.09)",filter:"url(#bloom)"}));
-  var cl=el("path",{d:centerPath(pts[0],pts[1],pts[2],pts[3]),fill:"none",
-    stroke:"rgba(127,255,212,0.30)","stroke-width":"1"});
-  this.gDeco.appendChild(cl);
-  // little circuit pad at the vein tip
-  this.gDeco.appendChild(el("circle",{cx:pts[3].x,cy:pts[3].y,r:2.2,
-    fill:"rgba(127,255,212,0.55)",filter:"url(#bloom)"}));
-  if(isPulse){ (this._pulseCarriers=this._pulseCarriers||[]).push(cl); }
-};
-
-Swarmcore.prototype.makeEye=function(p){
-  var outer=el("g",{transform:"translate("+p.x+" "+p.y+")"});
-  var inner=el("g"); outer.appendChild(inner);
-  var bloom=el("circle",{r:74,fill:"rgba(57,255,138,0.30)",filter:"url(#eyeBloom)"});
-  // 4-point light-ray flare (thin diamonds) — the SHODAN glare
-  var flare=el("g",{filter:"url(#eyeBloom)"});
-  flare.appendChild(el("path",{d:"M0,-128 L11,0 L0,128 L-11,0 Z",fill:"rgba(212,255,242,0.50)"}));
-  flare.appendChild(el("path",{d:"M-168,0 L0,9 L168,0 L0,-9 Z",fill:"rgba(212,255,242,0.40)"}));
-  var orb=el("circle",{r:EYE.r,fill:"url(#eyeFill)",stroke:"var(--chrome)",
-    "stroke-width":"1.6","stroke-opacity":"0.75"});
-  var pupil=el("circle",{r:EYE.r*0.34,fill:"#02160f",opacity:"0.6"});
-  var glint=el("circle",{r:EYE.r*0.18,cx:-EYE.r*0.28,cy:-EYE.r*0.30,fill:"#ffffff",opacity:"0.92"});
-  inner.appendChild(bloom);inner.appendChild(flare);inner.appendChild(orb);
-  inner.appendChild(pupil);inner.appendChild(glint);
-  this.gEyes.appendChild(outer);
-  return {inner:inner,bloom:bloom,flare:flare,orb:orb};
-};
-
-Swarmcore.prototype.setEyeMood=function(mood){
-  if(!this.eyes)return;
-  var amber = mood==="await";
-  var fill = amber?"url(#eyeFillAmber)":"url(#eyeFill)";
-  var glow = amber?"rgba(255,190,61,0.34)":"rgba(57,255,138,0.30)";
-  var fl0  = amber?"rgba(255,225,150,0.55)":"rgba(212,255,242,0.50)";
-  var fl1  = amber?"rgba(255,225,150,0.42)":"rgba(212,255,242,0.40)";
-  this.eyes.forEach(function(e){
-    e.orb.setAttribute("fill",fill);
-    e.bloom.setAttribute("fill",glow);
-    var ps=e.flare.querySelectorAll("path");
-    ps[0].setAttribute("fill",fl0); ps[1].setAttribute("fill",fl1);
-  });
-};
-
-// ambient life: eye breathing, occasional blink, drifting circuit pulses
-Swarmcore.prototype.ambient=function(now){
-  if(this._alast==null) this._alast=now;
-  var dt=(now-this._alast)/1000; this._alast=now;
-  if(dt<0)dt=0; if(dt>0.2)dt=0.2;
-
-  this.eyeEnergy=Math.max(0,(this.eyeEnergy||0)-dt*1.4);
-  var breathe=1+0.045*Math.sin(now/1000*2.1)+(this.eyeEnergy||0)*0.22;
-  var sy=1;
-  if(this._blinkUntil && now<this._blinkUntil){
-    var bp=(this._blinkUntil-now)/170;         // 170ms blink window
-    sy=0.12+0.88*Math.abs(bp*2-1);
-  } else if(now>=(this._nextBlink||0)){
-    this._blinkUntil=now+170; this._nextBlink=now+3600+Math.random()*3600;
-  }
-  if(this.eyes){
-    var ex=breathe.toFixed(3), ey=(breathe*sy).toFixed(3);
-    this.eyes.forEach(function(e){ e.inner.setAttribute("transform","scale("+ex+" "+ey+")"); });
-  }
-  if(this.decoPulses){
-    this.decoPulses.forEach(function(pp){
-      pp.t+=pp.speed*dt; if(pp.t>1)pp.t-=1;
-      var pt=pp.path.getPointAtLength(pp.t*pp.len);
-      pp.dot.setAttribute("cx",pt.x); pp.dot.setAttribute("cy",pt.y);
-      var o=pp.t<0.1?pp.t/0.1:(pp.t>0.9?(1-pp.t)/0.1:1);
-      pp.dot.setAttribute("opacity",(o*0.85).toFixed(2));
-    });
-  }
-};
+}
 
 // ---- controls ----
 Swarmcore.prototype.bindControls=function(){
@@ -601,274 +393,219 @@ Swarmcore.prototype.bindControls=function(){
 // ---- replay state ----
 Swarmcore.prototype.reset=function(){
   this.clock=0; this.cursor=0; this.completed=false;
+  this.reveal=0; this.amber=0; this.amberTarget=0;
+  this.zoneE=[0,0,0]; this.bursts=[]; this._cp=null;
   this.log.innerHTML='<span id="cursor">▮</span>';
   this.cursorEl=document.getElementById("cursor");
   this.setStatus("EXECUTING","");
-  // clear visuals
-  var self=this;
-  this.agents.forEach(function(ag){
-    self.setNode(ag.nodeEl,false,false);
-    ag.tEl.glow.setAttribute("opacity","0");
-    ag.tEl.base.setAttribute("fill","rgba(57,255,138,0.10)");
-    ag.sats.forEach(function(s){
-      self.setNode(s.nodeEl,false,false);
-      s.tEl.glow.setAttribute("opacity","0");
-      s.tEl.base.setAttribute("fill","rgba(57,255,138,0.10)");
-      s.nodeEl.g.classList.remove("breach");
-    });
-  });
-  this.setNode(this.coreEl,true,true);
-  this.packets=[];
-  this.gPacket.innerHTML="";
+  // opening readout: the orchestrator's real plan
+  var plan=(this.trace.orchestrator&&this.trace.orchestrator.planning_text)||"";
+  this.append('<div class="line"><span class="tag t-orch">◇ ORCHESTRATOR</span> '+
+    '<span class="muted">'+esc(clip(plan,240))+'</span></div>');
+  var subs=(this.trace.orchestrator&&this.trace.orchestrator.subtasks)||[];
+  this.append('<div class="line"><span class="tag t-orch">◇ PLAN</span> decomposed → '+
+    esc(subs.map(function(s){return s.role;}).join(" · "))+'</div>');
 };
 
 Swarmcore.prototype.setStatus=function(txt,cls){
   this.statusEl.textContent=txt;
   this.statusEl.className=cls;
-  this.setEyeMood(cls==="await"?"await":"exec");
+  this.amberTarget = (cls==="await") ? 1 : 0;
 };
 
-Swarmcore.prototype.setNode=function(n,on,strong){
-  var s = on ? (strong?1.34:1.16) : 1;
-  n.g.style.transition="transform .3s ease, filter .3s ease";
-  n.g.style.transformOrigin="center";
-  n.g.style.transform="scale("+s+")";
-  n.g.style.filter = on ? "brightness("+(strong?1.75:1.4)+")" : "brightness(1.02)";
-  n.halo.setAttribute("opacity", on ? (strong?1:.8) : .5);
-};
-
-// ---- main loop ----
+// ---- main tick ----
 Swarmcore.prototype.tick=function(now){
   var dt=now-this._last; this._last=now;
-  if(dt<0)dt=0; if(dt>200)dt=200; // clamp (tab-switch / long stalls)
+  if(dt<0)dt=0; if(dt>200)dt=200;
   if(this.playing){ this.clock += dt*this.speed; }
 
-  // fire steps whose start time has passed
   while(this.cursor<this.events.length && this.clock>=this.events[this.cursor].start){
     this.enterStep(this.events[this.cursor]); this.cursor++;
   }
-  // loop / complete handling
-  if(!this.completed && this.clock>=this.total){
-    this.onComplete();
-  }
-  if(this.clock>=this.loopEnd){
-    this.reset();
-  }
+  if(!this.completed && this.clock>=this.total){ this.onComplete(); }
+  if(this.clock>=this.loopEnd){ this.reset(); }
 
-  this.updatePackets();
-  this.updateActiveDim();
+  // face materializes as the run advances; holds full at COMPLETE
+  this.reveal = smooth(clamp(this.clock/(this.total*0.9),0,1));
+  this.checkpointTypewriter();
+
+  // ease shared state
+  var k=Math.min(1,dt/140);
+  this.amber += (this.amberTarget-this.amber)*k;
+  for(var z=0;z<3;z++) this.zoneE[z]*=Math.pow(0.9,dt/60);
+  // age bursts
+  var kept=[]; for(var b=0;b<this.bursts.length;b++){
+    this.bursts[b].age+=dt; if(this.bursts[b].age<this.bursts[b].life) kept.push(this.bursts[b]); }
+  this.bursts=kept;
+
   this.renderClock();
+
+  // draw the character field ~34fps
+  if(now-this._faceLast>28){ this._faceLast=now; this.drawFace(now); }
 };
 
 Swarmcore.prototype.renderClock=function(){
-  var ms=Math.min(this.clock,this.total);
-  var s=ms/1000, mm=Math.floor(s/60), ss=(s%60);
+  var ms=Math.min(this.clock,this.total), s=ms/1000;
   this.clockEl.textContent =
-    String(mm).padStart(2,"0")+":"+ss.toFixed(1).padStart(4,"0");
-};
-
-// dim non-active branches; keep the currently-active step's branch bright
-Swarmcore.prototype.updateActiveDim=function(){
-  // handled per-step via enter/exit brightening; nothing continuous needed
+    String(Math.floor(s/60)).padStart(2,"0")+":"+(s%60).toFixed(1).padStart(4,"0");
 };
 
 Swarmcore.prototype.onComplete=function(){
   this.completed=true;
   this.setStatus("COMPLETE","done");
   this.glitch();
-  var self=this;
-  // gentle full-graph shimmer to green
-  this.agents.forEach(function(ag){ self.setNode(ag.nodeEl,true,false); });
-  this.setNode(this.coreEl,true,true);
-  this.setEyeMood("exec"); this.eyeEnergy=1;   // bright green final flare
-  this.append('<div class="line"><span class="out">◈ RUN COMPLETE — 3 agents · trace replayed</span></div>');
+  this.append('<div class="line"><span class="out">◈ RUN COMPLETE — '+this.nAgents+
+    ' agents · face resolved from trace</span></div>');
 };
 
-// ---- enter a step: visuals + terminal ----
+// ---- react to a replayed step ----
 Swarmcore.prototype.enterStep=function(ev){
-  var ag=this.agents[ev.agentIdx];
-  var role=ag.role, step=ev.step;
-  var sat = (ev.satIdx!=null && ag.sats[ev.satIdx]) ? ag.sats[ev.satIdx] : null;
-
-  // brighten owning agent branch + flare the eyes with each event
-  this.brightenAgent(ag);
-  this.eyeEnergy=Math.min(1,(this.eyeEnergy||0)+0.55);
+  var role=ev.role, step=ev.step, zone=ev.ai%3;
+  this.zoneE[zone]=1;                                  // light the active agent's zone
+  var strong = (step.type==="tool_call"||step.type==="tool_result");
+  if(strong) this.burst(zone, 1.0);
+  else if(step.type==="reasoning") this.burst(zone, 0.5);
 
   if(step.type==="reasoning"){
     this.setStatus("EXECUTING","");
-    this.pulseNode(ag.nodeEl,false);
-    if(step.final){
+    if(step.final)
       this.append('<div class="line"><span class="tag t-'+role+'">▸'+role.toUpperCase()+
         '</span> <span class="out">✔ OUTPUT</span> '+esc(clip(step.content,320))+'</div>');
-    } else {
+    else
       this.append('<div class="line"><span class="tag t-'+role+'">▸'+role.toUpperCase()+
         '</span> <span class="muted">'+esc(clip(step.content,300))+'</span></div>');
-    }
   }
   else if(step.type==="tool_call"){
     this.setStatus("EXECUTING","");
-    if(sat){ this.brightenSat(sat); this.pulseNode(sat.nodeEl,true);
-      this.launchPacket(sat,"out",ev); }
-    var name=step.content.name, inp=JSON.stringify(step.content.input);
+    var inp=JSON.stringify(step.content.input);
     this.append('<div class="line"><span class="tag t-'+role+'">▸'+role.toUpperCase()+
-      '</span> <span class="call">⟐ CALL '+esc(name)+'</span> '+esc(clip(inp,120))+'</div>');
+      '</span> <span class="call">⟐ CALL '+esc(step.content.name)+'</span> '+esc(clip(inp,120))+'</div>');
   }
   else if(step.type==="tool_result"){
-    if(sat){ this.brightenSat(sat); this.launchPacket(sat,"in",ev); }
     var r=step.content, txt;
-    if(r.results){ txt=(r.results.length)+' sources · '+
+    if(r.results){ txt=r.results.length+' sources · '+
       r.results.slice(0,2).map(function(x){return clip(x.title||x.url,40);}).join(" ┃ "); }
-    else { txt=clip(r.result||"",150); }
+    else txt=clip(r.result||"",150);
     this.append('<div class="line"><span class="tag t-'+role+'">▸'+role.toUpperCase()+
       '</span> <span class="result">◀ '+esc(r.name||"result")+' </span> '+esc(txt)+'</div>');
   }
   else if(step.type==="checkpoint"){
-    this.enterCheckpoint(ev,ag,sat);
+    this.enterCheckpoint(ev);
   }
 };
 
-Swarmcore.prototype.brightenAgent=function(ag){
-  ag.tEl.glow.setAttribute("opacity","0.85");
-  ag.tEl.base.setAttribute("fill","rgba(127,255,212,0.22)");
-  this.setNode(ag.nodeEl,true,false);
-};
-Swarmcore.prototype.brightenSat=function(s){
-  s.tEl.glow.setAttribute("opacity","0.9");
-  s.tEl.base.setAttribute("fill","rgba(127,255,212,0.30)");
-  this.setNode(s.nodeEl,true,false);
-};
-Swarmcore.prototype.pulseNode=function(n,strong){
-  var self=this; this.setNode(n,true,strong);
-  // relax after ~ its step; scheduled softly
-  clearTimeout(n._relax);
-  n._relax=setTimeout(function(){ self.setNode(n,false,false); }, 1100/this.speed);
+Swarmcore.prototype.burst=function(zone,strong){
+  // burst centered on this agent's third of the face
+  var fx=(zone+0.5)/3;
+  this.bursts.push({ x:fx*this.cols, y:this.rows*(0.30+Math.random()*0.34),
+    age:0, life:900, strong:strong });
 };
 
-// ---- glowing packet along tendril ----
-Swarmcore.prototype.launchPacket=function(sat,dir,ev){
-  var dot=el("circle",{r:5,fill:"#eafff6",filter:"url(#bloomBig)"});
-  this.gPacket.appendChild(dot);
-  this.packets.push({sat:sat,dir:dir,dot:dot,start:this.clock,dur:PACKET/this.speed});
-};
-
-Swarmcore.prototype.updatePackets=function(){
-  var self=this, keep=[];
-  this.packets.forEach(function(pk){
-    var p=(self.clock-pk.start)/pk.dur;
-    if(p>=1){ if(pk.dot.parentNode) pk.dot.parentNode.removeChild(pk.dot); return; }
-    var pr = pk.dir==="out"? p : (1-p);
-    var s=pk.sat, pt;
-    // full path: first half along a (core->agent), second half along b (agent->sat)
-    if(pr<0.5){ pt=s._pa.getPointAtLength((pr/0.5)*s._la); }
-    else      { pt=s._pb.getPointAtLength(((pr-0.5)/0.5)*s._lb); }
-    pk.dot.setAttribute("cx",pt.x); pk.dot.setAttribute("cy",pt.y);
-    pk.dot.setAttribute("opacity", (p<0.12?p/0.12:(p>0.88?(1-p)/0.12:1)).toFixed(3));
-    keep.push(pk);
-  });
-  this.packets=keep;
-};
-
-// ---- checkpoint: amber flash + sweep + typewriter + hold + green ----
-Swarmcore.prototype.enterCheckpoint=function(ev,ag,sat){
-  var self=this, c=ev.step.content;
+// ---- checkpoint: amber face + sweep + typewriter ----
+Swarmcore.prototype.enterCheckpoint=function(ev){
+  var c=ev.step.content, ag=ev.role;
   this.setStatus("AWAITING INPUT","await");
   this.glitch();
-  // amber flash on agent node + upcoming satellite branch
-  ag.nodeEl.g.classList.add("breach");
-  if(sat){ sat.nodeEl.g.classList.add("breach");
-    sat.tEl.base.setAttribute("fill","rgba(255,190,61,0.30)");
-    sat.tEl.glow.setAttribute("fill","rgba(255,190,61,0.5)");
-    sat.tEl.glow.setAttribute("opacity","0.95"); }
-  ag.tEl.base.setAttribute("fill","rgba(255,190,61,0.24)");
-  // scanline sweep across whole canvas
+  this.burst(ev.ai%3, 1.4);
   this.sweep.classList.remove("run"); void this.sweep.offsetWidth; this.sweep.classList.add("run");
 
-  // typewriter block (clock-progress driven so it's pause-safe)
   var lines=[
-    "▓▓ HUMAN STEERING CHECKPOINT ▓▓  ["+ag.role.toUpperCase()+"]",
+    "▓▓ HUMAN STEERING CHECKPOINT ▓▓  ["+ag.toUpperCase()+"]",
     "SIMULATED — not a model action (simulated_steering:true)",
     "TOOL      : "+c.tool,
     "ORIGINAL  : "+JSON.stringify(c.original_input),
     "EDITED    : "+JSON.stringify(c.edited_input),
     "RATIONALE : "+c.rationale
   ];
-  this._cp={ text:lines.join("\n"), start:this.clock, dur:(DUR.checkpoint*0.62)/this.speed,
-             el:null, ag:ag, sat:sat };
-  var box=document.createElement("div");
-  box.className="cp"; box.innerHTML="";
+  var box=document.createElement("div"); box.className="cp";
   var wrap=document.createElement("div"); wrap.className="line"; wrap.appendChild(box);
   this.log.insertBefore(wrap,this.cursorEl);
-  this._cp.el=box;
-  this._cpTicker=true;
+  this._cp={ text:lines.join("\n"), start:this.clock,
+             dur:(DUR.checkpoint*0.6)/this.speed, el:box, resumed:false };
 };
 
-// drive typewriter + green-flash exit within tick via a light hook
-var _origTick=Swarmcore.prototype.tick;
-Swarmcore.prototype.tick=function(now){
-  _origTick.call(this,now);
-  this.ambient(now);
-  if(this._cp){
-    var cp=this._cp, p=(this.clock-cp.start)/cp.dur;
-    if(p<0)p=0;
-    var typed=Math.min(cp.text.length, Math.floor(p*cp.text.length));
-    var shown=cp.text.slice(0,typed);
-    cp.el.innerHTML=esc(shown).replace(/^(.*?):/gm,'<span class="k">$1</span>:')+
-      (p<1?'<span style="opacity:.7">▮</span>':'');
-    // green-flash resume once the hold nears its end
-    if(!cp._resumed && this.clock>=cp.start + DUR.checkpoint/this.speed - 380/this.speed){
-      cp._resumed=true;
-      this.setStatus("EXECUTING","");
-      this.glitch();
-      cp.ag.nodeEl.g.classList.remove("breach");
-      cp.ag.tEl.base.setAttribute("fill","rgba(127,255,212,0.22)");
-      if(cp.sat){ cp.sat.nodeEl.g.classList.remove("breach");
-        cp.sat.tEl.glow.setAttribute("fill","rgba(127,255,212,0.28)"); }
-      // brief green pulse on the agent node
-      this.setNode(cp.ag.nodeEl,true,true);
-      var a=cp.ag, s=this;
-      setTimeout(function(){ s.setNode(a.nodeEl,true,false); },260);
-      this._cp=null;
-    }
+Swarmcore.prototype.checkpointTypewriter=function(){
+  var cp=this._cp; if(!cp) return;
+  var p=clamp((this.clock-cp.start)/cp.dur,0,1);
+  var typed=Math.floor(p*cp.text.length), shown=cp.text.slice(0,typed);
+  cp.el.innerHTML=esc(shown).replace(/^(.*?):/gm,'<span class="k">$1</span>:')+
+    (p<1?'<span style="opacity:.7">▮</span>':'');
+  if(!cp.resumed && this.clock>=cp.start + DUR.checkpoint/this.speed - 360/this.speed){
+    cp.resumed=true; this.setStatus("EXECUTING",""); this.glitch(); this._cp=null;
   }
 };
 
-// ---- terminal helpers ----
+// ---- terminal + glitch ----
 Swarmcore.prototype.append=function(html){
   var d=document.createElement("div");
-  // html already wrapped in .line by callers that need it; else wrap
   if(html.indexOf('class="line"')>=0){ d.innerHTML=html; d=d.firstChild; }
   else { d.className="line"; d.innerHTML=html; }
   this.log.insertBefore(d,this.cursorEl);
-  // cap log length so it stays clean during long loops
   while(this.log.children.length>60) this.log.removeChild(this.log.firstChild);
 };
-
 Swarmcore.prototype.glitch=function(){
   var st=this.stage; st.classList.remove("glitch"); void st.offsetWidth;
-  st.classList.add("glitch");
-  setTimeout(function(){ st.classList.remove("glitch"); },420);
+  st.classList.add("glitch"); setTimeout(function(){ st.classList.remove("glitch"); },420);
 };
 
-// breach flash keyframe (added via JS to keep CSS above tidy)
-(function(){
-  var s=document.createElement("style");
-  s.textContent='.breach circle{stroke:var(--amber)!important}'+
-    '#graph .breach{animation:breachF .5s ease-in-out infinite}'+
-    '@keyframes breachF{0%,100%{filter:brightness(1.1)}50%{filter:brightness(1.9) drop-shadow(0 0 8px var(--amber))}}';
-  document.head.appendChild(s);
-})();
+// ============================================================ the portrait
+Swarmcore.prototype.drawFace=function(now){
+  var ctx=this.ctx, cols=this.cols, rows=this.rows, cw=this.cellW, chh=this.cellH;
+  ctx.clearRect(0,0,this.W,this.H);
+  ctx.font=this.fontPx.toFixed(1)+"px "+
+    'JetBrains Mono,IBM Plex Mono,ui-monospace,Menlo,monospace';
+  ctx.textBaseline="top";
 
-function esc(s){ return String(s==null?"":s)
-  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-function clip(s,n){ s=String(s==null?"":s); return s.length>n?s.slice(0,n-1)+"…":s; }
+  var t=now/1000;
+  var scan=(t*0.10)%1.25 - 0.12;                 // slow downward scan line (0..1)
+  var reveal=this.reveal, amber=this.amber;
+  var bursts=this.bursts, zoneE=this.zoneE;
+  // sparse character churn
+  var swaps=Math.max(1,(cols*rows*0.0006)|0);
+  for(var s2=0;s2<swaps;s2++){ var ri=(Math.random()*cols*rows)|0;
+    this.ch[ri]=CHARS[(Math.random()*CHARS.length)|0]; }
+
+  for(var r=0;r<rows;r++){
+    var yy=r*chh, ry=r/rows;
+    for(var c=0;c<cols;c++){
+      var i=r*cols+c;
+      var face=this.mask[i];
+      // per-cell reveal ordering → face emerges from noise
+      var cr=clamp((reveal - this.phase[i]*0.82)/0.2, 0, 1);
+      var g = Math.max(0.04, face*cr);             // dark baseline field
+      // active-agent zone glow (vertical third)
+      var zone=(c*3/cols)|0; if(zone>2)zone=2;
+      g += 0.18*zoneE[zone]*(0.4+face);
+      // bursts (expanding bright rings)
+      for(var b=0;b<bursts.length;b++){
+        var bu=bursts[b], a=bu.age/bu.life;
+        var rad=a*Math.max(cols,rows)*0.34;
+        var dx=c-bu.x, dy=r-bu.y, d=Math.sqrt(dx*dx+dy*dy);
+        var ring=Math.exp(-Math.pow(d-rad,2)/6)*(1-a)*bu.strong;
+        g += ring*0.7;
+      }
+      // shimmer + scan line
+      g += 0.05*Math.sin(t*2.4+this.jit[i]);
+      var sd=ry-scan; g += 0.16*Math.exp(-sd*sd*90);
+
+      g=clamp(g,0,1.35);
+      var alpha=0.04+0.96*Math.pow(Math.min(g,1),1.55);
+      // colour: dim green field → near-white highlights; amber during checkpoint
+      var hi=clamp((g-0.5)/0.5,0,1);
+      var mr=lerp(57,255,amber), mg=lerp(255,190,amber), mb=lerp(138,61,amber);
+      var R=lerp(mr,255,hi*0.85)|0, G=lerp(mg,255,hi*0.45)|0, B=lerp(mb,255,hi*0.85)|0;
+      ctx.fillStyle="rgba("+R+","+G+","+B+","+alpha.toFixed(3)+")";
+      ctx.fillText(this.ch[i], c*cw, yy);
+    }
+  }
+};
 
 // ------------------------------------------------------------------ start
 if (window.SWARMCORE_TRACE) {
   boot(window.SWARMCORE_TRACE);
 } else {
   fetch("trace.json").then(function(r){
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    return r.json();
+    if(!r.ok) throw new Error("HTTP "+r.status); return r.json();
   }).then(boot).catch(function(e){
     showError(new Error("could not load trace.json ("+e.message+"). "+
       "Open via a static server, or (re)generate trace-data.js."));
