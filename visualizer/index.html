@@ -4,6 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>SWARMCORE // multi-agent reasoning trace</title>
+<meta name="description" content="SWARMCORE — a replayable visualization of a real multi-agent AI reasoning trace. A human face materializes out of a field of living code as three Claude sub-agents research, analyze, and write." />
+<meta property="og:title" content="SWARMCORE — a face made of code" />
+<meta property="og:description" content="A real multi-agent AI reasoning trace, replayed as a typographic portrait: the face resolves out of the code as the agents work." />
+<meta property="og:type" content="website" />
 <style>
   :root{
     --core:#39ff8a;        /* acid green core glow           */
@@ -300,55 +304,68 @@ Swarmcore.prototype.setupCanvas=function(){
   this.initGrid();
 };
 
-// paint a head/face on a small canvas, read luminance per grid cell
+// paint a head/face on a small canvas, read luminance per grid cell.
+// All geometry is defined in PIXEL space (fractions of the stage height) and
+// converted to grid cells, so the face keeps correct anatomy at any aspect
+// ratio / window size.
 Swarmcore.prototype.buildMask=function(){
-  var cols=this.cols, rows=this.rows;
+  var cols=this.cols, rows=this.rows, cw=this.cellW, chh=this.cellH;
   var m=document.createElement("canvas"); m.width=cols; m.height=rows;
   var x=m.getContext("2d");
-  var W=cols, H=rows, cx=W*0.5;
-  x.fillStyle="#000"; x.fillRect(0,0,W,H);
+  x.fillStyle="#000"; x.fillRect(0,0,cols,rows);
 
-  function glow(px,py,rx,ry,a){
-    x.save(); x.translate(px,py); x.scale(1, ry/rx);
-    var g=x.createRadialGradient(0,0,0,0,0,rx);
-    g.addColorStop(0,"rgba(255,255,255,"+a+")");
-    g.addColorStop(1,"rgba(255,255,255,0)");
-    x.fillStyle=g; x.beginPath(); x.arc(0,0,rx,0,7); x.fill(); x.restore();
+  var Hp=this.H, cxp=this.W*0.5;                 // pixel space
+  function blob(color){
+    return function(pxX,pxY,rxPx,ryPx,a){
+      var X=pxX/cw, Y=pxY/chh, rx=rxPx/cw, ry=ryPx/chh;
+      x.save(); x.translate(X,Y); x.scale(1, ry/rx);
+      var g=x.createRadialGradient(0,0,0,0,0,rx);
+      g.addColorStop(0,"rgba("+color+","+a+")");
+      g.addColorStop(1,"rgba("+color+",0)");
+      x.fillStyle=g; x.beginPath(); x.arc(0,0,rx,0,7); x.fill(); x.restore();
+    };
   }
+  var glow=blob("255,255,255"), dark=blob("0,0,0");
+
+  // fit a portrait box (aspect ~0.82 w:h) inside the stage so the head fills
+  // the frame at any aspect ratio — bounded by height on square/tall stages,
+  // by width on wide ones.
+  var Wp=this.W, ASPECT=0.82;
+  var fH=Hp*0.98, fW=fH*ASPECT;
+  if(fW > Wp*0.98){ fW=Wp*0.98; fH=fW/ASPECT; }
+  var top=(Hp-fH)*0.5;
+  function X(fx){ return cxp + fx*fW; }
+  function Y(fy){ return top + fy*fH; }
+  function RX(f){ return f*fW; }
+  function RY(f){ return f*fH; }
+
   // additive light: cranium, jaw, cheeks, nose, neck, shoulders
   x.globalCompositeOperation="lighter";
-  glow(cx,        H*0.34, W*0.245, H*0.315, 1.00); // cranium
-  glow(cx,        H*0.51, W*0.195, H*0.205, 0.98); // jaw / chin
-  glow(cx,        H*0.25, W*0.155, H*0.090, 0.52); // forehead
-  glow(cx-W*0.110,H*0.45, W*0.085, H*0.095, 0.55); // left cheek
-  glow(cx+W*0.110,H*0.45, W*0.085, H*0.095, 0.55); // right cheek
-  glow(cx,        H*0.44, W*0.030, H*0.100, 0.55); // nose ridge
-  glow(cx,        H*0.68, W*0.100, H*0.150, 0.55); // neck
-  glow(cx,        H*0.97, W*0.42,  H*0.150, 0.50); // shoulders (a hint)
+  glow(X(0),      Y(0.33), RX(0.400), RY(0.320), 1.00); // cranium
+  glow(X(0),      Y(0.52), RX(0.330), RY(0.210), 0.98); // jaw / chin
+  glow(X(0),      Y(0.24), RX(0.260), RY(0.090), 0.52); // forehead
+  glow(X(-0.180), Y(0.46), RX(0.150), RY(0.100), 0.55); // left cheek
+  glow(X( 0.180), Y(0.46), RX(0.150), RY(0.100), 0.55); // right cheek
+  glow(X(0),      Y(0.44), RX(0.052), RY(0.100), 0.55); // nose ridge
+  glow(X(0),      Y(0.70), RX(0.175), RY(0.150), 0.55); // neck
+  glow(X(0),      Y(1.00), RX(0.720), RY(0.150), 0.50); // shoulders (a hint)
 
   // subtractive shadow: eye sockets, brow, temples, nostrils, mouth
   x.globalCompositeOperation="source-over";
-  function dark(px,py,rx,ry,a){
-    x.save(); x.translate(px,py); x.scale(1, ry/rx);
-    var g=x.createRadialGradient(0,0,0,0,0,rx);
-    g.addColorStop(0,"rgba(0,0,0,"+a+")");
-    g.addColorStop(1,"rgba(0,0,0,0)");
-    x.fillStyle=g; x.beginPath(); x.arc(0,0,rx,0,7); x.fill(); x.restore();
-  }
-  var eyY=H*0.40, eDX=W*0.102;
-  dark(cx-eDX, eyY, W*0.058, H*0.045, 0.98); // left eye socket
-  dark(cx+eDX, eyY, W*0.058, H*0.045, 0.98); // right eye socket
-  dark(cx,     H*0.36, W*0.195,H*0.026,0.52); // brow band
-  dark(cx-W*0.185,H*0.35,W*0.055,H*0.17,0.72); // left temple (defines skull)
-  dark(cx+W*0.185,H*0.35,W*0.055,H*0.17,0.72); // right temple
-  dark(cx,     H*0.52, W*0.05, H*0.020,0.6);  // under-nose
-  dark(cx,     H*0.585,W*0.08, H*0.017,0.55); // mouth
+  dark(X(-0.175), Y(0.400), RX(0.095), RY(0.045), 0.98); // left eye socket
+  dark(X( 0.175), Y(0.400), RX(0.095), RY(0.045), 0.98); // right eye socket
+  dark(X(0),      Y(0.355), RX(0.330), RY(0.026), 0.52); // brow band
+  dark(X(-0.320), Y(0.340), RX(0.090), RY(0.170), 0.72); // left temple
+  dark(X( 0.320), Y(0.340), RX(0.090), RY(0.170), 0.72); // right temple
+  dark(X(0),      Y(0.520), RX(0.085), RY(0.020), 0.60); // under-nose
+  dark(X(0),      Y(0.585), RX(0.135), RY(0.017), 0.55); // mouth
 
   // vignette so the head sits in a dark field of code
-  var vg=x.createRadialGradient(cx,H*0.42,H*0.06,cx,H*0.42,H*0.60);
+  var vcx=X(0)/cw, vcy=Y(0.42)/chh;
+  var vg=x.createRadialGradient(vcx,vcy,RY(0.10)/chh, vcx,vcy,RY(1.0)/chh);
   vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(0.66,"rgba(0,0,0,0)");
   vg.addColorStop(1,"rgba(0,0,0,0.97)");
-  x.fillStyle=vg; x.fillRect(0,0,W,H);
+  x.fillStyle=vg; x.fillRect(0,0,cols,rows);
 
   var img=x.getImageData(0,0,cols,rows).data;
   this.mask=new Float32Array(cols*rows);
@@ -571,8 +588,10 @@ Swarmcore.prototype.drawFace=function(now){
       var i=r*cols+c;
       var face=this.mask[i];
       // per-cell reveal ordering → face emerges from noise
-      var cr=clamp((reveal - this.phase[i]*0.82)/0.2, 0, 1);
-      var g = Math.max(0.04, face*cr);             // dark baseline field
+      var cr=clamp((reveal - this.phase[i]*0.80)/0.2, 0, 1);
+      // gentle breathing once formed, so the portrait feels alive
+      var breath=1+0.05*Math.sin(t*1.15)*reveal;
+      var g = Math.max(0.04, face*cr*breath);      // dark baseline field
       // active-agent zone glow (vertical third)
       var zone=(c*3/cols)|0; if(zone>2)zone=2;
       g += 0.18*zoneE[zone]*(0.4+face);

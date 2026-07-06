@@ -12,7 +12,32 @@ second loop for a portfolio.
 
 ![status: EXECUTING / AWAITING INPUT / COMPLETE](https://img.shields.io/badge/status-EXECUTING%20%E2%86%92%20AWAITING%20INPUT%20%E2%86%92%20COMPLETE-39ff8a?labelColor=03060a)
 
+![SWARMCORE — a face made of code beside a live agent-telemetry readout](docs/hero.png)
+
+<p align="center"><img src="docs/face-green.png" width="49%" alt="The portrait resolved from the code field"> <img src="docs/face-amber.png" width="49%" alt="The face flushes amber on the human-steering checkpoint"></p>
+
 ---
+
+## The idea
+
+SWARMCORE is a piece of **generative data-art built on top of a real system**.
+Underneath the aesthetic, an actual multi-agent pipeline ran: an **orchestrator**
+model reasoned about a task and split it into three roles; three **sub-agents**
+— *research*, *analyze*, *write* — went off and did the work, calling real tools
+(live web search, a knowledge base) and passing results down the chain, with a
+human reaching in **once** to steer a tool call mid-flight. Every reasoning step,
+tool call, and result was captured to `trace.json`.
+
+The visualization then replays that trace as a **portrait of the swarm's own
+mind** — a human face rendered entirely from a churning field of monospace
+characters. The face is not a picture pasted on top; it is *made of the run*.
+As the three agents work, the portrait **resolves out of the noise**; words
+lifted straight from the trace (`REACTOR`, `MEGAWATTS`, `ORCHESTRATOR`, …) drift
+through the code; each tool call sends a bright pulse across the face; and when
+the human steering checkpoint fires, the **entire face flushes amber** while a
+side terminal prints the exact edit that was made. It's a single looping image
+that says, in one glance: *this is what a collaborating group of AI agents —
+and the person guiding them — actually looks like from the inside.*
 
 ## What this is (and what it isn't)
 
