@@ -12,6 +12,10 @@ second loop for a portfolio.
 
 ![status: EXECUTING / AWAITING INPUT / COMPLETE](https://img.shields.io/badge/status-EXECUTING%20%E2%86%92%20AWAITING%20INPUT%20%E2%86%92%20COMPLETE-39ff8a?labelColor=03060a)
 
+<p align="center"><img src="docs/loop.gif" width="60%" alt="The face resolving out of the code as the agents run, flushing amber on the steering checkpoint"></p>
+
+<p align="center"><em>▶ the loop, resolving out of the code — <a href="docs/loop.mp4">MP4 version</a></em></p>
+
 ![SWARMCORE — a face made of code beside a live agent-telemetry readout](docs/hero.png)
 
 <p align="center"><img src="docs/face-green.png" width="49%" alt="The portrait resolved from the code field"> <img src="docs/face-amber.png" width="49%" alt="The face flushes amber on the human-steering checkpoint"></p>
