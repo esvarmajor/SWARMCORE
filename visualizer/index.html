@@ -166,7 +166,32 @@
   #controls .sep{width:1px;height:20px;background:rgba(127,255,212,.18)}
   #controls .lbl{font-size:9.5px;letter-spacing:.2em;color:#5f7d75;padding-left:2px}
 
+  /* ---- affect console (the emotional/rational-state instrument) ---- */
+  #affect{
+    position:absolute;top:56px;right:16px;z-index:6;width:196px;
+    padding:9px 10px 8px;border-radius:4px;pointer-events:none;
+    background:rgba(4,11,9,.60);border:1px solid rgba(127,255,212,.16);
+    box-shadow:0 8px 30px -14px rgba(0,0,0,.7), inset 0 0 18px rgba(57,255,138,.04);
+    backdrop-filter:blur(3px);
+  }
+  #affect .ahead{
+    display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;
+    font-size:9px;letter-spacing:.3em;color:#5f7d75;
+  }
+  #affect .ahead .mood{
+    font-weight:700;letter-spacing:.16em;font-size:12px;color:var(--core);
+    text-shadow:0 0 8px rgba(57,255,138,.5);transition:color .3s ease,text-shadow .3s ease;
+  }
+  #affect .nums{
+    font-size:9.5px;letter-spacing:.05em;color:#6f978b;margin-bottom:6px;
+    font-variant-numeric:tabular-nums;
+  }
+  #affect .nums b{color:var(--chrome-teal);font-weight:400}
+  canvas#eeg{display:block;width:176px;height:64px}
+
   @media (max-width:820px){
+    #affect{top:auto;bottom:74px;right:10px;width:170px}
+    canvas#eeg{width:150px}
     #app{flex-direction:column}
     #terminal{flex:0 0 40%;max-width:none;border-left:none;border-top:1px solid rgba(127,255,212,.16)}
   }
@@ -181,6 +206,11 @@
       <div class="task" id="taskLine">—</div>
       <div class="clock" id="clock">00:00.0</div>
       <div id="status">INITIALIZING</div>
+    </div>
+    <div id="affect">
+      <div class="ahead"><span>AFFECT ▸ STATE</span><span class="mood" id="moodWord">FOCUS</span></div>
+      <div class="nums">AROUSAL <b id="arVal">45</b> &nbsp;·&nbsp; VALENCE <b id="vaVal">+.10</b></div>
+      <canvas id="eeg"></canvas>
     </div>
     <div id="sweep"></div>
     <div id="controls">
@@ -223,6 +253,86 @@ function clip(s,n){ s=String(s==null?"":s); return s.length>n?s.slice(0,n-1)+"�
 var DUR={reasoning:1000,reasoningFinal:1600,tool_call:1250,tool_result:1250,checkpoint:2900};
 var END_HOLD=2400;
 
+var FONT='JetBrains Mono,IBM Plex Mono,ui-monospace,Menlo,monospace';
+var EEG_N=140;          // EEG ring-buffer sample count
+var INTAKE_MAX=6;       // max keyword tokens in flight at once
+
+// ---- emotional / cognitive states (the "LIMBIC BUS") --------------------
+// Each state is a preset the renderer EASES toward — never a hard repaint.
+//   core = the field colour   ·   glow = the highlight target for lit cells
+// Motion scalars (churn/breath/seek/doubt/freeze/tremor) let a viewer read
+// the state through MOTION as well as hue (colour is never the sole channel).
+var STATE={
+  focus:     {label:"FOCUS", ch:"F", core:[57,255,138],  glow:[200,255,228], warmth: 0.00, churn:1.00, bHz:0.80, bAmp:0.050, arousal:45, valence: 0.10},
+  seek:      {label:"SEEK",  ch:"S", core:[127,255,212], glow:[223,255,242], warmth:-0.15, churn:1.30, bHz:0.75, bAmp:0.045, arousal:60, valence: 0.20, seek:1},
+  synthesis: {label:"SYNTH", ch:"Y", core:[143,255,192], glow:[234,255,246], warmth:-0.25, churn:0.60, bHz:0.80, bAmp:0.050, arousal:55, valence: 0.60, collapse:1},
+  doubt:     {label:"DOUBT", ch:"D", core:[168,140,64],  glow:[214,196,120], warmth: 0.30, churn:1.55, bHz:1.30, bAmp:0.038, arousal:70, valence:-0.42, doubt:1},
+  alert:     {label:"ALERT", ch:"A", core:[255,190,61],  glow:[255,230,168], warmth: 0.90, churn:1.10, bHz:2.10, bAmp:0.020, arousal:92, valence:-0.60, tremor:1},
+  resolve:   {label:"RSLV",  ch:"R", core:[190,255,219], glow:[255,255,255], warmth:-0.10, churn:0.12, bHz:0.55, bAmp:0.070, arousal:45, valence: 0.90, freeze:1}
+};
+var BUS=["focus","seek","synthesis","doubt","alert","resolve"];  // F·S·Y·D·A·R
+var EMBER=[224,74,52];   // doubt: shadow-only furrow tint (brow/eye sockets)
+
+// per-state FACIAL EXPRESSION — offsets applied to the dark features (brow /
+// eyes / mouth / furrow) so the mask morphs into an expression. Head geometry
+// (cranium/jaw/cheeks) is shared, so only the face "emotes", it doesn't wobble.
+//   brow: vertical brow+eye shift (- up / + down)   furrow: 0..1 inner-brow crease
+//   eyeOpen: dark-socket height (squint<1 / wide>1)  eyeW: socket width
+//   mouthCurve: corner lift (+ smile / - frown)      mouthOpen: mouth-gap height
+var EXPR={
+  focus:     {brow: 0.000, furrow:0.0, eyeOpen:1.00, eyeW:1.00, mouthCurve: 0.000, mouthOpen:1.00},
+  seek:      {brow:-0.012, furrow:0.0, eyeOpen:1.12, eyeW:1.06, mouthCurve: 0.010, mouthOpen:1.00},
+  synthesis: {brow:-0.004, furrow:0.0, eyeOpen:0.95, eyeW:1.00, mouthCurve: 0.060, mouthOpen:1.10},
+  doubt:     {brow: 0.018, furrow:1.0, eyeOpen:0.60, eyeW:0.94, mouthCurve:-0.050, mouthOpen:0.80},
+  alert:     {brow:-0.032, furrow:0.25,eyeOpen:1.55, eyeW:1.20, mouthCurve:-0.008, mouthOpen:2.60},
+  resolve:   {brow:-0.006, furrow:0.0, eyeOpen:1.00, eyeW:1.00, mouthCurve: 0.070, mouthOpen:1.18}
+};
+
+// tool identity colours for the labeled pulses (distinct from the emotion hues,
+// so PULSE = which tool, FACE = how it feels — two separate channels).
+var TOOL_COLORS={
+  web_search:       [104,196,255],   // ice-blue
+  knowledge_lookup: [190,138,255],   // violet
+  steering:         [255,190,61],    // amber (human checkpoint)
+  _default:         [127,255,212]    // chrome-teal
+};
+function toolColor(name){ return TOOL_COLORS[name] || TOOL_COLORS._default; }
+var DOUBT_RE=/doesn'?t match|data[- ]quality|discrepan|contradict|mismatch|I notice|however,|but the|ambigu|unclear|caveat|conflict|uncertain|\bflag\b|unsubstantiated|not supported/i;
+var MISS_RE=/no .*(entry|result|match|knowledge)|not found|unavailable|missing|failed|empty/i;
+var STOPWORDS={JSON:1,NULL:1,TRUE:1,FALSE:1,HTTP:1,HTTPS:1,THIS:1,THAT:1,WITH:1,FROM:1,INTO:1,YOUR:1,HAVE:1,WILL:1,QUERY:1,INPUT:1,NAME:1,TYPE:1,KEY:1,TEXT:1,ROLE:1,STEP:1};
+
+// deterministic LCG so keyword flights replay byte-identically for recording
+function lcg(seed){ var s=(seed>>>0)||1; return function(){ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
+
+// map any step -> a state. A generator label (step.emotion) wins only when it
+// is confident (conf>=0.5); otherwise a priority-ordered heuristic covers 100%
+// of steps, so a label-less trace is still fully expressive.
+function classifyStep(step){
+  var e=step.emotion;
+  if(e && e.conf>=0.5 && STATE[e.state]){
+    var inten=clamp((e.arousal!=null?e.arousal:STATE[e.state].arousal)/60,0.4,1.6);
+    return {id:e.state, inten:inten, frust:0, labeled:true, arousal:e.arousal, valence:e.valence};
+  }
+  var id="focus", frust=0, c=step.content;
+  switch(step.type){
+    case "checkpoint": id="alert"; break;               // human steering / hard fault
+    case "tool_call":  id="seek";  break;               // reaching outward
+    case "tool_result":                                 // payoff vs dead-end
+      var empty=(c&&c.results&&c.results.length===0)||(c&&c.result&&MISS_RE.test(c.result));
+      if(empty){ id="doubt"; frust=1; } else id="synthesis";
+      break;
+    case "reasoning":
+      var s=String(c||"");
+      if(DOUBT_RE.test(s)) id="doubt";
+      else if(step.final || /final|word count|confirm|complete|✔/i.test(s)) id="resolve";
+      else if(/outline|rank|theme|synthesi|distinguish|conclude/i.test(s)) id="synthesis";
+      else id="focus";
+      break;
+    default: id="focus";
+  }
+  return {id:id, inten:1, frust:frust, labeled:false};
+}
+
 // ================================================================= engine
 function Swarmcore(trace){
   this.trace=trace;
@@ -234,6 +344,12 @@ function Swarmcore(trace){
   this.clockEl=document.getElementById("clock");
   this.stage=document.getElementById("stage");
   this.sweep=document.getElementById("sweep");
+  // affect instrument
+  this.eeg=document.getElementById("eeg");
+  this.moodEl=document.getElementById("moodWord");
+  this.arEl=document.getElementById("arVal");
+  this.vaEl=document.getElementById("vaVal");
+  this.dotEl=document.querySelector("#terminal .thead .dot");
 }
 
 Swarmcore.prototype.start=function(){
@@ -243,6 +359,7 @@ Swarmcore.prototype.start=function(){
   this.buildModel();
   this.buildWords();
   this.setupCanvas();
+  this.setupEEG();
   this.bindControls();
   this.reset();
 
@@ -304,16 +421,27 @@ Swarmcore.prototype.setupCanvas=function(){
   this.cols=Math.ceil(this.W/this.cellW);
   this.rows=Math.ceil(this.H/this.cellH);
   this.fontPx=this.cellH*0.94;
+  this._burstMaxR=Math.max(this.cols,this.rows)*0.34;
 
-  this.buildMask();
+  this.buildMasks();
   this.initGrid();
 };
 
-// paint a head/face on a small canvas, read luminance per grid cell.
-// All geometry is defined in PIXEL space (fractions of the stage height) and
-// converted to grid cells, so the face keeps correct anatomy at any aspect
-// ratio / window size.
-Swarmcore.prototype.buildMask=function(){
+// small offscreen EEG canvas (bus + rolling waveform) — one extra surface
+Swarmcore.prototype.setupEEG=function(){
+  var c=this.eeg; if(!c) return;
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  this.eegW=176; this.eegH=64;
+  c.style.width=this.eegW+"px"; c.style.height=this.eegH+"px";
+  c.width=Math.round(this.eegW*dpr); c.height=Math.round(this.eegH*dpr);
+  this.ectx=c.getContext("2d"); this.ectx.setTransform(dpr,0,0,dpr,0,0);
+};
+
+// Paint a head/face on a small canvas for one EXPRESSION and read luminance per
+// grid cell. Geometry is in PIXEL space (fractions of stage height) so the face
+// keeps correct anatomy at any aspect ratio. Head shape is fixed; the dark
+// features (brow/eyes/mouth/furrow) move per `expr`, so the face emotes.
+Swarmcore.prototype.buildMaskFor=function(expr){
   var cols=this.cols, rows=this.rows, cw=this.cellW, chh=this.cellH;
   var m=document.createElement("canvas"); m.width=cols; m.height=rows;
   var x=m.getContext("2d");
@@ -332,9 +460,6 @@ Swarmcore.prototype.buildMask=function(){
   }
   var glow=blob("255,255,255"), dark=blob("0,0,0");
 
-  // fit a portrait box (aspect ~0.82 w:h) inside the stage so the head fills
-  // the frame at any aspect ratio — bounded by height on square/tall stages,
-  // by width on wide ones.
   var Wp=this.W, ASPECT=0.82;
   var fH=Hp*0.98, fW=fH*ASPECT;
   if(fW > Wp*0.98){ fW=Wp*0.98; fH=fW/ASPECT; }
@@ -344,7 +469,7 @@ Swarmcore.prototype.buildMask=function(){
   function RX(f){ return f*fW; }
   function RY(f){ return f*fH; }
 
-  // additive light: cranium, jaw, cheeks, nose, neck, shoulders
+  // additive light: cranium, jaw, cheeks, nose, neck, shoulders (expression-invariant)
   x.globalCompositeOperation="lighter";
   glow(X(0),      Y(0.33), RX(0.400), RY(0.320), 1.00); // cranium
   glow(X(0),      Y(0.52), RX(0.330), RY(0.210), 0.98); // jaw / chin
@@ -355,15 +480,26 @@ Swarmcore.prototype.buildMask=function(){
   glow(X(0),      Y(0.70), RX(0.175), RY(0.150), 0.55); // neck
   glow(X(0),      Y(1.00), RX(0.720), RY(0.150), 0.50); // shoulders (a hint)
 
-  // subtractive shadow: eye sockets, brow, temples, nostrils, mouth
+  // subtractive shadow: the EXPRESSIVE features (driven by expr)
+  var e=expr, brow=e.brow, eyeY=0.400+brow*0.6;
   x.globalCompositeOperation="source-over";
-  dark(X(-0.175), Y(0.400), RX(0.095), RY(0.045), 0.98); // left eye socket
-  dark(X( 0.175), Y(0.400), RX(0.095), RY(0.045), 0.98); // right eye socket
-  dark(X(0),      Y(0.355), RX(0.330), RY(0.026), 0.52); // brow band
-  dark(X(-0.320), Y(0.340), RX(0.090), RY(0.170), 0.72); // left temple
-  dark(X( 0.320), Y(0.340), RX(0.090), RY(0.170), 0.72); // right temple
-  dark(X(0),      Y(0.520), RX(0.085), RY(0.020), 0.60); // under-nose
-  dark(X(0),      Y(0.585), RX(0.135), RY(0.017), 0.55); // mouth
+  dark(X(-0.175), Y(eyeY), RX(0.095*e.eyeW), RY(0.045*e.eyeOpen), 0.98); // left eye
+  dark(X( 0.175), Y(eyeY), RX(0.095*e.eyeW), RY(0.045*e.eyeOpen), 0.98); // right eye
+  dark(X(0),      Y(0.355+brow), RX(0.330), RY(0.026), 0.52);            // brow band
+  dark(X(-0.320), Y(0.340), RX(0.090), RY(0.170), 0.72);                 // left temple
+  dark(X( 0.320), Y(0.340), RX(0.090), RY(0.170), 0.72);                 // right temple
+  dark(X(0),      Y(0.520), RX(0.085), RY(0.020), 0.60);                 // under-nose
+  // inner-brow furrow (concern/anger): lowered inner brows + a glabella crease
+  if(e.furrow>0){
+    dark(X(-0.085), Y(0.372+brow+e.furrow*0.010), RX(0.055), RY(0.032), 0.52*e.furrow);
+    dark(X( 0.085), Y(0.372+brow+e.furrow*0.010), RX(0.055), RY(0.032), 0.52*e.furrow);
+    dark(X(0),      Y(0.360+brow),                RX(0.020), RY(0.048), 0.45*e.furrow);
+  }
+  // mouth — corners lift by mouthCurve (smile/frown), gap by mouthOpen
+  var mc=e.mouthCurve, mo=e.mouthOpen;
+  dark(X(0),      Y(0.585),      RX(0.070), RY(0.017*mo), 0.55);         // mouth centre
+  dark(X(-0.078), Y(0.585-mc),   RX(0.045), RY(0.014*mo), 0.50);         // left corner
+  dark(X( 0.078), Y(0.585-mc),   RX(0.045), RY(0.014*mo), 0.50);         // right corner
 
   // vignette so the head sits in a dark field of code
   var vcx=X(0)/cw, vcy=Y(0.42)/chh;
@@ -372,32 +508,74 @@ Swarmcore.prototype.buildMask=function(){
   vg.addColorStop(1,"rgba(0,0,0,0.97)");
   x.fillStyle=vg; x.fillRect(0,0,cols,rows);
 
-  var img=x.getImageData(0,0,cols,rows).data;
-  this.mask=new Float32Array(cols*rows);
-  for(var i=0;i<cols*rows;i++){
+  // stash the (expression-invariant) centroid for keyword flight paths
+  this.faceCX=cxp; this.faceCY=top+0.42*fH;
+
+  var img=x.getImageData(0,0,cols,rows).data, n=cols*rows;
+  var out=new Float32Array(n);
+  for(var i=0;i<n;i++){
     var v=img[i*4]/255;
     v=clamp((v-0.17)/0.72, 0, 1);   // contrast: crush background, lift the face
-    this.mask[i]=Math.pow(v,0.80);
+    out[i]=Math.pow(v,0.80);
   }
+  return out;
+};
+
+// build one mask per emotional expression; the live `this.mask` eases between them
+Swarmcore.prototype.buildMasks=function(){
+  var cols=this.cols, rows=this.rows;
+  this.masks={};
+  for(var k in EXPR){ if(EXPR.hasOwnProperty(k)) this.masks[k]=this.buildMaskFor(EXPR[k]); }
+  // seed from the ACTIVE state (not focus) so a mid-run resize keeps the
+  // expression matched to the colour; falls back to focus on first setup.
+  var cur=(this.curStateId && this.masks[this.curStateId]) || this.masks.focus;
+  this.mask=cur.slice();                // live, eased mask
+  this.maskT=cur;                       // current target expression
+
+  // bright "brain band" cells per vertical third → keyword landing targets
+  var fm=this.masks.focus;
+  this.zoneTargets=[[],[],[]];
+  var r0=Math.max(1,Math.floor(rows*0.18)), r1=Math.floor(rows*0.46);
+  for(var rr=r0;rr<r1;rr++){
+    for(var cc=1;cc<cols-1;cc++){
+      if(fm[rr*cols+cc]>0.5){
+        var zz=(cc*3/cols)|0; if(zz>2)zz=2;
+        this.zoneTargets[zz].push({col:cc,row:rr});
+      }
+    }
+  }
+  for(var z=0;z<3;z++){ if(!this.zoneTargets[z].length){
+    var mc=Math.floor(cols*(z+0.5)/3), mr=Math.floor(rows*0.32);
+    this.zoneTargets[z].push({col:clamp(mc,1,cols-2),row:mr}); } }
 };
 
 Swarmcore.prototype.initGrid=function(){
-  var n=this.cols*this.rows;
+  var cols=this.cols, rows=this.rows, n=cols*rows;
   this.ch=new Array(n);
   this.phase=new Float32Array(n);   // reveal ordering
   this.jit=new Float32Array(n);     // per-cell shimmer phase
+  this.gboost=new Float32Array(n);  // transient brightness where keywords imprint
+  this.faceCell=new Uint8Array(n);  // 1 = part of the face (kept meaningful, not churned)
   for(var i=0;i<n;i++){
     this.ch[i]=CHARS[(Math.random()*CHARS.length)|0];
     this.phase[i]=Math.random();
     this.jit[i]=Math.random()*6.28;
   }
-  // stamp real words horizontally into random rows (faint code vocabulary)
-  var self=this;
-  (this.words||[]).forEach(function(w,k){
-    var row=2+((Math.random()*(self.rows-4))|0);
-    var col=1+((Math.random()*Math.max(1,self.cols-w.length-2))|0);
-    for(var q=0;q<w.length;q++){ self.ch[row*self.cols+col+q]=w[q]; }
-  });
+  // THE FACE IS MADE OF WORDS: flow the trace's real vocabulary through the
+  // bright mask cells in reading order, so the lit portrait literally spells the
+  // run's own terms. Background (dark) cells stay random and shimmer.
+  var stream=((this.words||[]).join("·")+"·").toUpperCase();
+  if(stream.length<40) stream="SWARMCORE·ORCHESTRATOR·RESEARCH·ANALYZE·WRITE·REACTOR·";
+  var fm=(this.masks&&this.masks.focus)||this.mask, sp=0;
+  for(var r=0;r<rows;r++){
+    for(var c=0;c<cols;c++){
+      var idx=r*cols+c;
+      if(fm && fm[idx]>0.34){
+        this.faceCell[idx]=1;
+        this.ch[idx]=stream.charAt(sp%stream.length); sp++;
+      }
+    }
+  }
 }
 
 // ---- controls ----
@@ -415,11 +593,28 @@ Swarmcore.prototype.bindControls=function(){
 // ---- replay state ----
 Swarmcore.prototype.reset=function(){
   this.clock=0; this.cursor=0; this.completed=false;
-  this.reveal=0; this.amber=0; this.amberTarget=0;
+  this.reveal=0;
   this.zoneE=[0,0,0]; this.bursts=[]; this._cp=null;
+  if(this.cols) this.initGrid();            // fresh field each loop (clears accretion)
+
+  // ---- affect engine: eased state colour + motion scalars ----
+  this.core=STATE.focus.core.slice(); this.glow=STATE.focus.glow.slice();
+  this.coreT=STATE.focus.core.slice(); this.glowT=STATE.focus.glow.slice();
+  this.warmth=0; this.churnS=1; this.bHz=0.8; this.bAmp=0.05;
+  this.arousal=45; this.valence=0.10; this.seekS=0; this.doubtS=0;
+  this.freeze=0; this.tremor=0; this.frust=0;
+  this.warmthT=0; this.churnT=1; this.bHzT=0.8; this.bAmpT=0.05;
+  this.arousalT=45; this.valenceT=0.10; this.seekT=0; this.doubtT=0;
+  this.freezeT=0; this.tremorT=0; this.frustT=0;
+  this.curStateId="focus"; this._stateSince=0; this._now=0; this._synthT=-9999;
+  this.tokens=[]; this.pulses=[]; this.busLvl=[0,0,0,0,0,0];
+  if(this.masks){ this.mask=this.masks.focus.slice(); this.maskT=this.masks.focus; }
+  this.eegBuf=new Float32Array(EEG_N); this.eegHead=0; this._eegPhase=0; this._eegLast=0;
+
   this.log.innerHTML='<span id="cursor">▮</span>';
   this.cursorEl=document.getElementById("cursor");
   this.setStatus("EXECUTING","");
+  this.setEmotion("focus",1,0,true);
   // opening readout: the orchestrator's real plan
   var plan=(this.trace.orchestrator&&this.trace.orchestrator.planning_text)||"";
   this.append('<div class="line"><span class="tag t-orch">◇ ORCHESTRATOR</span> '+
@@ -431,18 +626,65 @@ Swarmcore.prototype.reset=function(){
 
 Swarmcore.prototype.setStatus=function(txt,cls){
   this.statusEl.textContent=txt;
-  this.statusEl.className=cls;
-  this.amberTarget = (cls==="await") ? 1 : 0;
+  this.statusEl.className=cls;   // layout/label only — colour comes from setEmotion
+};
+
+// ---- affect engine: set the current emotional/cognitive state ----
+Swarmcore.prototype.setEmotion=function(id,inten,frust,force,arousal,valence){
+  if(!STATE[id]) id="focus";
+  inten=inten||1;
+  // min-dwell debounce (~400ms): quick low-arousal steps don't yank the colour;
+  // the higher-arousal state wins to avoid whiplash. tokens still spawn regardless.
+  if(!force && this.curStateId && (this.clock-this._stateSince<400) &&
+     STATE[id].arousal<=STATE[this.curStateId].arousal){ return; }
+  var st=STATE[id];
+  this.curStateId=id; this._stateSince=this.clock;
+  this.coreT=st.core.slice(); this.glowT=st.glow.slice();
+  this.warmthT=st.warmth;
+  this.churnT=1+(st.churn-1)*inten + (frust?(2.2-st.churn):0);
+  this.bHzT=st.bHz; this.bAmpT=st.bAmp;
+  // a confident generator label supplies real arousal/valence; else use presets
+  this.arousalT=(arousal!=null)?arousal:((id==="doubt"&&frust)?78:st.arousal);
+  this.valenceT=(valence!=null)?valence:((id==="doubt"&&frust)?-0.55:st.valence);
+  this.seekT=st.seek?1:0; this.doubtT=st.doubt?1:0;
+  this.freezeT=st.freeze?1:0; this.tremorT=st.tremor?1:0; this.frustT=frust?1:0;
+  var bi=BUS.indexOf(id); if(bi>=0) this.busLvl[bi]=1;   // light this bus segment
+  if(this.masks && this.masks[id]) this.maskT=this.masks[id];  // morph facial expression
+  // HUD readout
+  var rgb="rgb("+st.core.join(",")+")";
+  if(this.moodEl){ this.moodEl.textContent=st.label; this.moodEl.style.color=rgb;
+    this.moodEl.style.textShadow="0 0 8px rgba("+st.core.join(",")+",.5)"; }
+  if(this.arEl) this.arEl.textContent=Math.round(this.arousalT);
+  if(this.vaEl){ var v=this.valenceT; this.vaEl.textContent=(v>=0?"+":"")+v.toFixed(2); }
+  if(this.statusEl){ this.statusEl.style.color=rgb;
+    this.statusEl.style.boxShadow="0 0 15px rgba("+st.core.join(",")+",.28) inset"; }
+  if(this.dotEl){ this.dotEl.style.background=rgb;
+    this.dotEl.style.boxShadow="0 0 8px "+rgb; }
+};
+
+// ease all affect channels toward their targets, once per frame (cheap)
+Swarmcore.prototype.easeAffect=function(dt){
+  var k=Math.min(1,dt/200);   // >=200ms eases: no hard flips (seizure-safe)
+  for(var i=0;i<3;i++){ this.core[i]+=(this.coreT[i]-this.core[i])*k;
+                        this.glow[i]+=(this.glowT[i]-this.glow[i])*k; }
+  this.warmth+=(this.warmthT-this.warmth)*k;
+  this.churnS+=(this.churnT-this.churnS)*k;
+  this.bHz+=(this.bHzT-this.bHz)*k; this.bAmp+=(this.bAmpT-this.bAmp)*k;
+  this.arousal+=(this.arousalT-this.arousal)*k; this.valence+=(this.valenceT-this.valence)*k;
+  this.seekS+=(this.seekT-this.seekS)*k; this.doubtS+=(this.doubtT-this.doubtS)*k;
+  this.freeze+=(this.freezeT-this.freeze)*k; this.tremor+=(this.tremorT-this.tremor)*k;
+  this.frust+=(this.frustT-this.frust)*k;
 };
 
 // ---- main tick ----
 Swarmcore.prototype.tick=function(now){
   var dt=now-this._last; this._last=now;
   if(dt<0)dt=0; if(dt>200)dt=200;
+  this._now=now;
   if(this.playing){ this.clock += dt*this.speed; }
 
   while(this.cursor<this.events.length && this.clock>=this.events[this.cursor].start){
-    this.enterStep(this.events[this.cursor]); this.cursor++;
+    this.enterStep(this.events[this.cursor], this.cursor); this.cursor++;
   }
   if(!this.completed && this.clock>=this.total){ this.onComplete(); }
   if(this.clock>=this.loopEnd){ this.reset(); }
@@ -451,19 +693,35 @@ Swarmcore.prototype.tick=function(now){
   this.reveal = smooth(clamp(this.clock/(this.total*0.9),0,1));
   this.checkpointTypewriter();
 
-  // ease shared state
-  var k=Math.min(1,dt/140);
-  this.amber += (this.amberTarget-this.amber)*k;
+  // ease affect channels + zone glow
+  this.easeAffect(dt);
   for(var z=0;z<3;z++) this.zoneE[z]*=Math.pow(0.9,dt/60);
   // age bursts
   var kept=[]; for(var b=0;b<this.bursts.length;b++){
     this.bursts[b].age+=dt; if(this.bursts[b].age<this.bursts[b].life) kept.push(this.bursts[b]); }
   this.bursts=kept;
+  // age keyword tokens + decay imprint glow + bus afterglow
+  if(this.playing) this.ageTokens(dt);
+  if(this.gboost){ var gd=Math.pow(0.90,dt/33), gb=this.gboost;
+    for(var gi=0;gi<gb.length;gi++){ if(gb[gi]>0.002) gb[gi]*=gd; else if(gb[gi]) gb[gi]=0; } }
+  if(this.busLvl){ var bd=Math.pow(0.985,dt/16);
+    for(var bl=0;bl<6;bl++) this.busLvl[bl]*=bd;
+    var cur=BUS.indexOf(this.curStateId); if(cur>=0) this.busLvl[cur]=1; }
+  // ease the facial EXPRESSION (mask morph) toward the current state
+  if(this.maskT && this.mask){ var mk=Math.min(1,dt/300), lm=this.mask, tm=this.maskT;
+    for(var mi=0;mi<lm.length;mi++) lm[mi]+=(tm[mi]-lm[mi])*mk; }
+  // age tool pulses (frozen while paused, like tokens)
+  if(this.playing && this.pulses && this.pulses.length){ var pk=[];
+    for(var pi=0;pi<this.pulses.length;pi++){ this.pulses[pi].age+=dt;
+      if(this.pulses[pi].age<this.pulses[pi].life) pk.push(this.pulses[pi]); }
+    this.pulses=pk; }
 
   this.renderClock();
 
   // draw the character field ~34fps
   if(now-this._faceLast>28){ this._faceLast=now; this.drawFace(now); }
+  // EEG waveform ~20fps
+  if(now-this._eegLast>48){ this._eegLast=now; this.drawEEG(); }
 };
 
 Swarmcore.prototype.renderClock=function(){
@@ -475,18 +733,34 @@ Swarmcore.prototype.renderClock=function(){
 Swarmcore.prototype.onComplete=function(){
   this.completed=true;
   this.setStatus("COMPLETE","done");
+  this.setEmotion("resolve",1,0,true);   // crystallize + hold through END_HOLD
   this.glitch();
   this.append('<div class="line"><span class="out">◈ RUN COMPLETE — '+this.nAgents+
     ' agents · face resolved from trace</span></div>');
 };
 
 // ---- react to a replayed step ----
-Swarmcore.prototype.enterStep=function(ev){
+Swarmcore.prototype.enterStep=function(ev, idx){
   var role=ev.role, step=ev.step, zone=ev.ai%3;
   this.zoneE[zone]=1;                                  // light the active agent's zone
+
+  // classify -> emotional state -> keyword intake
+  var cls=classifyStep(step);
+  this.setEmotion(cls.id, cls.inten, cls.frust, false,
+                  cls.labeled?cls.arousal:null, cls.labeled?cls.valence:null);
+  if(cls.id==="synthesis") this._synthT=this._now;     // trigger the insight bloom
+  this.spawnTokens(ev, idx==null?this.cursor:idx);
+
+  var collapse=(cls.id==="synthesis");                 // insight bursts converge inward
   var strong = (step.type==="tool_call"||step.type==="tool_result");
-  if(strong) this.burst(zone, 1.0);
-  else if(step.type==="reasoning") this.burst(zone, 0.5);
+  if(strong) this.burst(zone, 1.0, collapse);
+  else if(step.type==="reasoning") this.burst(zone, 0.5, collapse);
+
+  // labeled, tool-coloured PULSE — names the tool/MCP being invoked
+  if(step.type==="tool_call")
+    this.spawnPulse(zone, step.content.name, toolColor(step.content.name), "call");
+  else if(step.type==="tool_result")
+    this.spawnPulse(zone, step.content.name||"result", toolColor(step.content.name), "result");
 
   if(step.type==="reasoning"){
     this.setStatus("EXECUTING","");
@@ -516,11 +790,223 @@ Swarmcore.prototype.enterStep=function(ev){
   }
 };
 
-Swarmcore.prototype.burst=function(zone,strong){
+Swarmcore.prototype.burst=function(zone,strong,collapse){
   // burst centered on this agent's third of the face
   var fx=(zone+0.5)/3;
   this.bursts.push({ x:fx*this.cols, y:this.rows*(0.30+Math.random()*0.34),
-    age:0, life:900, strong:strong });
+    age:0, life:900, strong:strong, collapse:!!collapse });
+  if(this.bursts.length>8) this.bursts.shift();
+};
+
+// ============================================================ tool pulses
+// A pulse rings out from the active agent's zone carrying the TOOL/MCP name in a
+// tool-specific colour — so a viewer reads which tool fired and can tell
+// web_search (ice-blue) from knowledge_lookup (violet) at a glance.
+Swarmcore.prototype.spawnPulse=function(zone,label,color,kind){
+  if(!this.pulses) this.pulses=[];
+  var cx=(zone+0.5)/3*this.W;
+  var cy=(this.faceCY||this.H*0.42) + (this.jit?Math.sin(this.pulses.length*1.7)*this.H*0.06:0);
+  this.pulses.push({ x:cx, y:cy, age:0, life:1250,
+    color:color||TOOL_COLORS._default, label:String(label||"tool").toUpperCase(), kind:kind });
+  if(this.pulses.length>6) this.pulses.shift();
+};
+
+Swarmcore.prototype.drawPulses=function(){
+  var ctx=this.ctx, ps=this.pulses; if(!ps||!ps.length) return;
+  var maxR=Math.min(this.W,this.H)*0.30;
+  for(var i=0;i<ps.length;i++){
+    var p=ps[i], a=p.age/p.life; if(a>=1) continue;
+    var c=p.color, fade=(1-a), R=c[0]|0,G=c[1]|0,B=c[2]|0;
+    var rad=8 + smooth(a)*maxR;
+    // expanding double ring
+    ctx.strokeStyle="rgba("+R+","+G+","+B+","+(0.5*fade).toFixed(3)+")";
+    ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(p.x,p.y,rad,0,6.2832); ctx.stroke();
+    ctx.strokeStyle="rgba("+R+","+G+","+B+","+(0.22*fade).toFixed(3)+")";
+    ctx.lineWidth=1; ctx.beginPath(); ctx.arc(p.x,p.y,rad*0.62,0,6.2832); ctx.stroke();
+    // label rises + fades
+    var sz=Math.max(11,this.fontPx*1.15);
+    ctx.font="bold "+sz.toFixed(1)+"px "+FONT;
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    var pre=(p.kind==="result")?"◀ ":(p.kind==="steer")?"✎ ":"⟐ ";
+    var ly=p.y - a*this.H*0.06;
+    ctx.fillStyle="rgba(3,8,7,"+(0.5*fade).toFixed(3)+")";      // dark plate for legibility
+    ctx.fillText(pre+p.label, p.x+0.8, ly+0.8);
+    ctx.fillStyle="rgba("+R+","+G+","+B+","+(0.96*fade).toFixed(3)+")";
+    ctx.fillText(pre+p.label, p.x, ly);
+    ctx.textAlign="left";
+  }
+};
+
+// ============================================================ keyword intake
+// Pick the salient keyword(s) for a step (tool names, argument values, source
+// titles, domain terms) — these are what "enter the head".
+Swarmcore.prototype.pickTokens=function(step){
+  var out=[], seen={};
+  function push(s){
+    if(s==null) return; s=String(s).toUpperCase().replace(/[^A-Z0-9_]/g,"");
+    if(s.length<4) return; if(s.length>12) s=s.slice(0,12);
+    if(STOPWORDS[s]||seen[s]) return; seen[s]=1; out.push(s);
+  }
+  function harvest(str,cap){ (String(str).toUpperCase().match(/[A-Z][A-Z0-9_]{3,11}/g)||[])
+    .slice(0,cap||99).forEach(push); }
+  var c=step.content;
+  if(step.type==="tool_call"){
+    push(c && c.name);
+    var inp=(c&&c.input)||{}; for(var k in inp) harvest(inp[k],3);
+  } else if(step.type==="tool_result"){
+    if(c && c.results && c.results.length){
+      push(c.results.length+"SRC");
+      c.results.slice(0,3).forEach(function(x){ harvest(x.title||x.url,2); });
+    } else if(c && c.result){ harvest(c.result,3); }
+  } else if(step.type==="checkpoint"){
+    var o=(c&&c.original_input)||{}, e=(c&&c.edited_input)||{};
+    Object.keys(o).forEach(function(k){ harvest(o[k],2); });   // what it WAS
+    Object.keys(e).forEach(function(k){ harvest(e[k],2); });   // what it BECAME
+  } else { harvest(c,4); }
+  if(!out.length && this.words && this.words.length)         // never starve
+    out.push(this.words[this.cursor%this.words.length]);
+  var maxN = step.type==="reasoning"?2 : step.type==="tool_result"?4 : step.type==="checkpoint"?2 : 3;
+  return out.slice(0,maxN);
+};
+
+Swarmcore.prototype.pickSpawn=function(zone,rnd){
+  var W=this.W,H=this.H;                     // enter from the edge nearest the agent's third
+  if(zone===0) return {x:-W*0.03, y:H*(0.18+rnd()*0.6)};
+  if(zone===2) return {x:W*1.03,  y:H*(0.18+rnd()*0.6)};
+  return {x:W*(0.2+rnd()*0.6), y:-H*0.04};
+};
+
+Swarmcore.prototype.pickTarget=function(zone,rnd,len){
+  var list=this.zoneTargets[zone], cols=this.cols;
+  if(list && list.length){
+    for(var tries=0;tries<6;tries++){
+      var t=list[(rnd()*list.length)|0];
+      var col=Math.max(1, t.col-((len/2)|0));
+      if(col+len < cols-1) return {col:col, row:t.row};
+    }
+    var t0=list[0];
+    return {col:clamp(t0.col,1,cols-len-1), row:t0.row};
+  }
+  return {col:1+((this.cols-len-2)*rnd()|0), row:2+((this.rows-4)*rnd()|0)};
+};
+
+// spawn a step's keyword tokens on deterministic (seeded) flight paths
+Swarmcore.prototype.spawnTokens=function(ev, stepIndex){
+  var toks=this.pickTokens(ev.step); if(!toks.length) return;
+  var zone=ev.ai%3, st=STATE[this.curStateId]||STATE.focus;
+  var scramble=(this.curStateId==="doubt");
+  var live=0; for(var q=0;q<this.tokens.length;q++) if(!this.tokens[q].landed) live++;
+  var dur = ev.step.type==="checkpoint"?1400 : ev.step.type==="reasoning"?800:1000;
+  for(var k=0;k<toks.length;k++){
+    if(live>=INTAKE_MAX) break; live++;
+    var rnd=lcg(stepIndex*131 + k*997 + 17);
+    var sp=this.pickSpawn(zone,rnd), tg=this.pickTarget(zone,rnd,toks[k].length);
+    this.tokens.push({
+      text:toks[k], sx:sp.x, sy:sp.y,
+      cx:lerp(sp.x,this.faceCX,0.5)+(rnd()-0.5)*this.W*0.12,
+      cy:lerp(sp.y,this.faceCY,0.5)+(rnd()-0.5)*this.H*0.12,
+      tcol:tg.col, trow:tg.row, tx:tg.col*this.cellW, ty:tg.row*this.cellH,
+      age:0, life:dur, delay:k*120, zone:zone, landed:false, scramble:scramble,
+      core:st.core.slice(), glow:st.glow.slice()
+    });
+  }
+};
+
+// advance keyword tokens; on arrival they IMPRINT into the face (or scramble)
+Swarmcore.prototype.ageTokens=function(dt){
+  var keep=[];
+  for(var i=0;i<this.tokens.length;i++){
+    var tk=this.tokens[i];
+    if(tk.delay>0){ tk.delay-=dt; keep.push(tk); continue; }
+    tk.age+=dt;
+    if(!tk.landed && tk.age>=tk.life){ tk.landed=true; this.landToken(tk); }
+    if(!tk.landed || tk.age < tk.life+240) keep.push(tk);   // brief settle, then drop
+  }
+  this.tokens=keep;
+};
+
+Swarmcore.prototype.landToken=function(tk){
+  var col=tk.tcol, row=tk.trow, txt=tk.text, cols=this.cols;
+  if(row>=0 && row<this.rows){
+    for(var q=0;q<txt.length;q++){
+      var cc=col+q; if(cc<1||cc>=cols-1) continue;
+      var idx=row*cols+cc;
+      if(tk.scramble){ this.ch[idx]=CHARS[(Math.random()*CHARS.length)|0]; }  // failed integration
+      else { this.ch[idx]=txt[q]; this.gboost[idx]=Math.min(0.8,(this.gboost[idx]||0)+0.5); }
+    }
+  }
+  if(!tk.scramble) this.burst(tk.zone, 0.6, true);   // small inward reward pulse
+};
+
+// draw the in-flight keyword tokens as an overlay (after the grid pass)
+Swarmcore.prototype.drawTokens=function(){
+  var ctx=this.ctx, toks=this.tokens; if(!toks.length) return;
+  ctx.textBaseline="top";
+  for(var i=0;i<toks.length;i++){
+    var tk=toks[i]; if(tk.delay>0 || tk.landed) continue;
+    var pe=clamp(tk.age/tk.life,0,1); pe=pe*pe;          // ease-in (an inhale)
+    var mt=1-pe;
+    var x=mt*mt*tk.sx + 2*mt*pe*tk.cx + pe*pe*tk.tx;
+    var y=mt*mt*tk.sy + 2*mt*pe*tk.cy + pe*pe*tk.ty;
+    var size=lerp(this.fontPx*1.15, this.fontPx, pe);
+    ctx.font=size.toFixed(1)+"px "+FONT;
+    var R=lerp(tk.core[0],tk.glow[0],pe*0.8)|0,
+        G=lerp(tk.core[1],tk.glow[1],pe*0.8)|0,
+        B=lerp(tk.core[2],tk.glow[2],pe*0.8)|0;
+    var txt=tk.text, kern=size*0.62;
+    var ux=tk.tx-tk.sx, uy=tk.ty-tk.sy, ul=Math.sqrt(ux*ux+uy*uy)||1; ux/=ul; uy/=ul;
+    for(var e=2;e>=0;e--){                                // 2 trailing echoes + head
+      var a=(e===0)?0.92:[0,0.30,0.15][e]*(0.4+0.6*pe);
+      var ex=x-ux*e*7, ey=y-uy*e*7;
+      ctx.fillStyle="rgba("+R+","+G+","+B+","+a.toFixed(3)+")";
+      for(var q=0;q<txt.length;q++) ctx.fillText(txt[q], ex+q*kern, ey);
+    }
+  }
+};
+
+// draw the affect instrument: F·S·Y·D·A·R bus (with afterglow) + EEG waveform
+Swarmcore.prototype.drawEEG=function(){
+  var x=this.ectx; if(!x) return;
+  var W=this.eegW, H=this.eegH;
+  // advance one waveform sample from the eased affect scalars
+  var ar=this.arousal/100;
+  this._eegPhase += 0.15+ar*0.5;
+  var base=Math.sin(this._eegPhase);
+  var noise=this.doubtS*(Math.random()-0.5)*1.3;                 // doubt = jitter
+  var spike=(this.warmth>0.3 && Math.sin(this._eegPhase*3)>0.6)  // alert = spikes
+              ? Math.random()*this.warmth : 0;
+  var amp=(0.15+ar*0.78)*(1-0.72*this.freeze);                   // resolve flattens
+  var sample=clamp(base*amp + noise*0.5 + spike, -1.2, 1.2);
+  this.eegBuf[this.eegHead]=sample; this.eegHead=(this.eegHead+1)%EEG_N;
+
+  x.clearRect(0,0,W,H);
+  // ---- bus F·S·Y·D·A·R : active lit, prior states keep a decaying afterglow ----
+  var bw=W/6, by=6;
+  x.textAlign="center"; x.textBaseline="middle";
+  for(var i=0;i<6;i++){
+    var col=STATE[BUS[i]].core, lv=this.busLvl[i], cx=i*bw+bw/2;
+    var a=(0.16+0.84*lv).toFixed(3);
+    x.fillStyle="rgba("+col[0]+","+col[1]+","+col[2]+","+a+")";
+    x.font="bold 10px "+FONT;
+    x.fillText(STATE[BUS[i]].ch, cx, by+5);
+    x.shadowColor="rgba("+col[0]+","+col[1]+","+col[2]+","+(0.6*lv)+")"; x.shadowBlur=6*lv;
+    x.fillRect(i*bw+3, by+15, bw-6, 1.5+2.5*lv);
+    x.shadowBlur=0;
+  }
+  x.textAlign="left";
+  // ---- rolling EEG waveform, coloured by the live state ----
+  var wy0=30, wh=H-wy0-4, mid=wy0+wh/2;
+  var c0=this.core[0]|0, c1=this.core[1]|0, c2=this.core[2]|0;
+  x.strokeStyle="rgba("+c0+","+c1+","+c2+",0.15)"; x.lineWidth=1;
+  x.beginPath(); x.moveTo(2,mid); x.lineTo(W-2,mid); x.stroke();
+  x.strokeStyle="rgba("+c0+","+c1+","+c2+",0.92)"; x.lineWidth=1.2;
+  x.beginPath();
+  for(var s=0;s<EEG_N;s++){
+    var v=this.eegBuf[(this.eegHead+s)%EEG_N];
+    var px=2+s/(EEG_N-1)*(W-4), py=mid - v*(wh/2-1);
+    if(s===0) x.moveTo(px,py); else x.lineTo(px,py);
+  }
+  x.stroke();
 };
 
 // ---- checkpoint: amber face + sweep + typewriter ----
@@ -529,6 +1015,7 @@ Swarmcore.prototype.enterCheckpoint=function(ev){
   this.setStatus("AWAITING INPUT","await");
   this.glitch();
   this.burst(ev.ai%3, 1.4);
+  this.spawnPulse(ev.ai%3, c.tool||"steering", TOOL_COLORS.steering, "steer");
   this.sweep.classList.remove("run"); void this.sweep.offsetWidth; this.sweep.classList.add("run");
 
   var lines=[
@@ -542,8 +1029,10 @@ Swarmcore.prototype.enterCheckpoint=function(ev){
   var box=document.createElement("div"); box.className="cp";
   var wrap=document.createElement("div"); wrap.className="line"; wrap.appendChild(box);
   this.log.insertBefore(wrap,this.cursorEl);
+  // durations are in clock-units (this.clock already advances at dt*speed), so
+  // they must NOT be re-divided by speed — that would scale the beat twice.
   this._cp={ text:lines.join("\n"), start:this.clock,
-             dur:(DUR.checkpoint*0.6)/this.speed, el:box, resumed:false };
+             dur:DUR.checkpoint*0.6, el:box, resumed:false };
 };
 
 Swarmcore.prototype.checkpointTypewriter=function(){
@@ -552,7 +1041,7 @@ Swarmcore.prototype.checkpointTypewriter=function(){
   var typed=Math.floor(p*cp.text.length), shown=cp.text.slice(0,typed);
   cp.el.innerHTML=esc(shown).replace(/^(.*?):/gm,'<span class="k">$1</span>:')+
     (p<1?'<span style="opacity:.7">▮</span>':'');
-  if(!cp.resumed && this.clock>=cp.start + DUR.checkpoint/this.speed - 360/this.speed){
+  if(!cp.resumed && this.clock>=cp.start + DUR.checkpoint - 360){
     cp.resumed=true; this.setStatus("EXECUTING",""); this.glitch(); this._cp=null;
   }
 };
@@ -574,18 +1063,28 @@ Swarmcore.prototype.glitch=function(){
 Swarmcore.prototype.drawFace=function(now){
   var ctx=this.ctx, cols=this.cols, rows=this.rows, cw=this.cellW, chh=this.cellH;
   ctx.clearRect(0,0,this.W,this.H);
-  ctx.font=this.fontPx.toFixed(1)+"px "+
-    'JetBrains Mono,IBM Plex Mono,ui-monospace,Menlo,monospace';
+  ctx.font=this.fontPx.toFixed(1)+"px "+FONT;
   ctx.textBaseline="top";
 
   var t=now/1000;
   var scan=(t*0.10)%1.25 - 0.12;                 // slow downward scan line (0..1)
-  var reveal=this.reveal, amber=this.amber;
-  var bursts=this.bursts, zoneE=this.zoneE;
-  // sparse character churn
-  var swaps=Math.max(1,(cols*rows*0.0006)|0);
+  var reveal=this.reveal, bursts=this.bursts, zoneE=this.zoneE;
+  var core=this.core, glow=this.glow, gboost=this.gboost;
+  var doubtS=this.doubtS, seekS=this.seekS, tremor=this.tremor, freeze=this.freeze;
+
+  // ---- frame-level derived values (computed ONCE, not per cell) ----
+  var swaps=Math.max(1,(cols*rows*0.0006*this.churnS)|0);       // churn scales w/ tension
+  var fc=this.faceCell;
   for(var s2=0;s2<swaps;s2++){ var ri=(Math.random()*cols*rows)|0;
+    if(fc && fc[ri]) continue;                                  // keep the face's WORDS legible
     this.ch[ri]=CHARS[(Math.random()*CHARS.length)|0]; }
+  var powE=1.55+0.6*freeze;                                     // resolve: edges SNAP hard
+  var hscan=(t*0.5)%1.2;                                        // seek: L→R scan bar
+  var breathG=1 + this.bAmp*Math.sin(t*6.2832*this.bHz)*reveal  // arousal-driven breath
+                + (tremor>0.02 ? 0.015*Math.sin(t*13):0);       // alert: micro-tremor
+  var synthBloom=0.12*Math.exp(-Math.pow((now-this._synthT)/300,2)); // insight pulse
+  var lumScale=1-0.22*this.frust;                               // frustration darkens
+  var maxR=this._burstMaxR||Math.max(cols,rows)*0.34;
 
   for(var r=0;r<rows;r++){
     var yy=r*chh, ry=r/rows;
@@ -594,34 +1093,50 @@ Swarmcore.prototype.drawFace=function(now){
       var face=this.mask[i];
       // per-cell reveal ordering → face emerges from noise
       var cr=clamp((reveal - this.phase[i]*0.80)/0.2, 0, 1);
-      // gentle breathing once formed, so the portrait feels alive
-      var breath=1+0.05*Math.sin(t*1.15)*reveal;
-      var g = Math.max(0.04, face*cr*breath);      // dark baseline field
+      var g = Math.max(0.04, face*cr*breathG);     // dark baseline field
       // active-agent zone glow (vertical third)
       var zone=(c*3/cols)|0; if(zone>2)zone=2;
       g += 0.18*zoneE[zone]*(0.4+face);
-      // bursts (expanding bright rings)
+      // bursts — SEEK expands outward, SYNTH collapses inward (convergence)
       for(var b=0;b<bursts.length;b++){
         var bu=bursts[b], a=bu.age/bu.life;
-        var rad=a*Math.max(cols,rows)*0.34;
+        var rad=bu.collapse ? (1-a)*maxR : a*maxR;
         var dx=c-bu.x, dy=r-bu.y, d=Math.sqrt(dx*dx+dy*dy);
         var ring=Math.exp(-Math.pow(d-rad,2)/6)*(1-a)*bu.strong;
         g += ring*0.7;
       }
+      // seek horizontal scan bar (only when seeking)
+      if(seekS>0.02){ var sdx=(c/cols)-hscan; g += 0.14*seekS*Math.exp(-sdx*sdx*90); }
+      // synthesis insight bloom (face-weighted, brief)
+      if(synthBloom>0.002) g += synthBloom*face;
+      // keyword imprint glow (fades over ~700ms)
+      g += gboost[i];
       // shimmer + scan line
       g += 0.05*Math.sin(t*2.4+this.jit[i]);
       var sd=ry-scan; g += 0.16*Math.exp(-sd*sd*90);
 
-      g=clamp(g,0,1.35);
-      var alpha=0.04+0.96*Math.pow(Math.min(g,1),1.55);
-      // colour: dim green field → near-white highlights; amber during checkpoint
+      g=clamp(g*lumScale,0,1.35);
+      var alpha=0.04+0.96*Math.pow(Math.min(g,1),powE);
+      // colour: eased STATE core → its highlight; green resting is always home
       var hi=clamp((g-0.5)/0.5,0,1);
-      var mr=lerp(57,255,amber), mg=lerp(255,190,amber), mb=lerp(138,61,amber);
-      var R=lerp(mr,255,hi*0.85)|0, G=lerp(mg,255,hi*0.45)|0, B=lerp(mb,255,hi*0.85)|0;
+      var R=lerp(core[0],glow[0],hi*0.85)|0,
+          G=lerp(core[1],glow[1],hi*0.45)|0,
+          B=lerp(core[2],glow[2],hi*0.85)|0;
+      // DOUBT: ember furrow, strong in the shadows (brow/eyes), a hint even when lit
+      if(doubtS>0){
+        var w=doubtS*(face<0.55 ? (0.55-face)*2.0 : 0.14); if(w>1)w=1;
+        R=lerp(R,EMBER[0],w*0.80)|0; G=lerp(G,EMBER[1],w*0.62)|0; B=lerp(B,EMBER[2],w*0.60)|0;
+      }
+      // DOUBT shudder: per-cell x jitter once the face has formed
+      var xoff=(doubtS>0.02 && reveal>=0.5) ? doubtS*0.55*cw*Math.sin(t*7+this.jit[i]) : 0;
       ctx.fillStyle="rgba("+R+","+G+","+B+","+alpha.toFixed(3)+")";
-      ctx.fillText(this.ch[i], c*cw, yy);
+      ctx.fillText(this.ch[i], c*cw+xoff, yy);
     }
   }
+
+  // overlays: keywords flying into the head, then the tool pulses
+  this.drawTokens();
+  this.drawPulses();
 };
 
 // ------------------------------------------------------------------ start

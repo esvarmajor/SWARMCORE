@@ -35,13 +35,18 @@ tool call, and result was captured to `trace.json`.
 The visualization then replays that trace as a **portrait of the swarm's own
 mind** — a human face rendered entirely from a churning field of monospace
 characters. The face is not a picture pasted on top; it is *made of the run*.
-As the three agents work, the portrait **resolves out of the noise**; words
-lifted straight from the trace (`REACTOR`, `MEGAWATTS`, `ORCHESTRATOR`, …) drift
-through the code; each tool call sends a bright pulse across the face; and when
-the human steering checkpoint fires, the **entire face flushes amber** while a
-side terminal prints the exact edit that was made. It's a single looping image
-that says, in one glance: *this is what a collaborating group of AI agents —
-and the person guiding them — actually looks like from the inside.*
+As the three agents work, the portrait **resolves out of the noise**, and the
+face **changes its emotional / cognitive state with the reasoning**: it cools to
+cyan as an agent reaches out for a tool, blooms mint as results land, furrows
+olive when it doubts its own data, flushes amber when a human reaches in to
+steer, and crystallizes near-white when it resolves. Keywords lifted straight
+from the trace (`REACTOR`, `NUSCALE`, `ORCHESTRATOR`, …) don't just sit there —
+they **fly in from the edges and imprint into the head**, so the mind visibly
+accretes its own vocabulary. A compact **affect console** (mood word,
+arousal/valence, an `F·S·Y·D·A·R` state bus, and a live EEG trace) lets you read
+the state as an instrument. It's a single looping image that says, in one
+glance: *this is what a collaborating group of AI agents — and the person
+guiding them — actually looks like, and feels like, from the inside.*
 
 ## What this is (and what it isn't)
 
@@ -117,6 +122,14 @@ python trace-generator/generate_trace.py   # writes visualizer/trace.json + trac
 
 That's it — reload the visualizer and it replays the new run.
 
+**Optional environment overrides** (no code edits needed):
+
+| Variable | Default | Effect |
+|---|---|---|
+| `SWARMCORE_TASK` | the SMR brief | Run the swarm on any task. The orchestrator + research (`web_search`) adapt to it; **note** the analyze/write `knowledge_lookup` KB and the steering are still SMR-specific (see Roadmap), so a non-SMR task gives a real research section but an SMR-flavored analyze/write section. |
+| `SWARMCORE_LABEL_EMOTIONS` | `1` | Set `0` to skip the emotion-labeling pass (the frontend heuristic still colours the trace). |
+| `SWARMCORE_EMOTION_MODEL` | `claude-haiku-4-5-20251001` | Which (cheap) model labels each step's emotional state. |
+
 What the generator does (fixed, disciplined scope — one demo task, exactly three
 sub-agents, one checkpoint):
 
@@ -153,11 +166,23 @@ frontend can animate the replay at a natural pace.
   "subagents": [
     { "id", "role", "steps": [
       { "type": "reasoning" | "tool_call" | "tool_result" | "checkpoint",
-        "content": …, "timestamp_ms": 0 }
+        "content": …, "timestamp_ms": 0,
+        "emotion": {                       // OPTIONAL — added by the labeling pass
+          "state": "focus" | "seek" | "synthesis" | "doubt" | "alert" | "resolve",
+          "arousal": 0,                    // 0–100
+          "valence": 0.0,                  // -1..1
+          "conf": 0.0                      // 0..1 — used only when >= 0.5
+        }
+      }
     ] }
   ]
 }
 ```
+
+> The `emotion` field is **optional and additive**. If it's absent (as in the
+> committed trace), the visualizer classifies each step with a built-in JS
+> heuristic and renders identically — the label just lets a real model judgement
+> override the heuristic when it's confident (`conf >= 0.5`).
 
 ---
 
@@ -168,21 +193,62 @@ frontend can animate the replay at a natural pace.
   code*, drawn on an HTML canvas). The face is not pre-baked: it **materialises out
   of the noise** as the trace replays, brightening region by region as the three
   agents work, and holds fully-resolved on the `COMPLETE` state before the loop
-  dissolves it back into code. Real words pulled from the trace (tool names,
-  `SMR`, `ORCHESTRATOR`, …) are scattered faintly through the field.
+  dissolves it back into code.
+- **A face made of real words.** The lit portrait is not random glyphs — the
+  trace's actual vocabulary (`MODULAR NUCLEAR REACTORS`, `MEGAWATTS`, `NUSCALE`,
+  `TERRAPOWER`, `ORCHESTRATOR`, `CONVECTION`, …) is **flowed through the bright mask
+  cells in reading order**, so the face literally spells the run's own content. The
+  dark background stays random and shimmers; the face's words are held stable (the
+  churn skips them) and accrete as keywords fly in.
+- **A face that expresses itself.** The mask is not static — six facial
+  expressions are pre-built (one per state) and the live face **eases between
+  them**, so it *emotes*: brows furrow and eyes narrow on **DOUBT**, eyes widen and
+  the mouth opens on **ALERT**, the mouth lifts into a faint smile on **SYNTH** /
+  **RSLV**. The head shape is shared across expressions, so the face emotes without
+  wobbling.
+- **Emotional / rational states.** Each replayed step is classified into one of
+  six affective states, and the whole face **eases toward that state's colour and
+  motion** (never a hard repaint — green is always home). Every state also carries
+  a distinct *motion* signature, so it reads even without colour:
+
+  | State | Bus | Colour | Fires on | Motion |
+  |---|---|---|---|---|
+  | **FOCUS** | `F` | acid-green `#39ff8a` | calm reasoning / planning | resting breath |
+  | **SEEK** | `S` | cyan `#7fffd4` | a `tool_call` (reaching out) | second L→R scan bar; keyword intake |
+  | **SYNTH** | `Y` | mint `#8fffc0` | results land / insight | bursts **collapse inward**; a bloom |
+  | **DOUBT** | `D` | muddy olive `#a88c40` | mismatch / data-quality flag | face darkens + **ember furrow** in the brow/eyes + a **shudder** |
+  | **ALERT** | `A` | amber `#ffbe3d` | the human steering checkpoint | full amber wash + sweep + tremor |
+  | **RSLV** | `R` | near-white `#beffdb` | final, confident output | **crystallizes**: churn drops, edges snap, holds |
+
+- **Keyword intake.** On each step the salient keywords (tool names, argument
+  values, source titles) **spawn at the edge nearest the active agent and fly
+  into the head**, curving toward the face and **imprinting into the mask** on
+  arrival — coloured by the current state (teal = seeking, mint = insight, olive =
+  doubt…). Doubt keywords arrive dim and *scramble* instead of landing. Flights
+  are seeded (deterministic) so the loop records identically.
+- **Tool pulses.** Every `tool_call` / `tool_result` fires a labeled **pulse** —
+  an expanding ring carrying the tool/MCP name, **coloured by which tool it is**:
+  `web_search` rings out ice-blue, `knowledge_lookup` violet, a steering checkpoint
+  amber. So the pulse tells you *which tool*, while the face tells you *how it
+  feels* — two independent channels.
+- **Affect console.** A compact instrument (top-right): the current mood word,
+  numeric **AROUSAL / VALENCE**, a six-segment `F·S·Y·D·A·R` **state bus** whose
+  prior segments keep a decaying afterglow (so you read the *trajectory* of
+  states), and a **live EEG trace** whose amplitude tracks arousal and whose shape
+  changes per state (calm wave → jagged spikes on ALERT → flat line on RSLV).
 - **Palette.** Near-black background (`#03060a`→`#060c08`) with a faint circuit
-  texture and vignette; acid-green core `#39ff8a`, chrome-teal `#7fffd4`, amber
-  checkpoint `#ffbe3d`, breach red `#ff3b3b`, chrome node borders `#dfe9e6`.
+  texture and vignette; the six state colours above, plus breach red `#ff3b3b` and
+  chrome node borders `#dfe9e6`.
 - **Replay.** As the trace plays in timestamp order, each step lights the active
   agent's zone of the face and fires an expanding **burst** of bright characters
   on every `tool_call` / `tool_result`. A slow scan-line and per-cell shimmer keep
   the whole field alive.
-- **The checkpoint moment.** The **entire code-face flushes amber**, a **scanline
-  sweep** crosses the canvas (`STATUS: AWAITING INPUT`), and the side terminal
-  prints the original-vs-edited instruction and rationale with a typewriter
-  effect. It holds ~2.5 s, then snaps back to green and resumes.
+- **The checkpoint moment.** This is the **ALERT** state: the **entire code-face
+  flushes amber**, a **scanline sweep** crosses the canvas (`STATUS: AWAITING
+  INPUT`), and the side terminal prints the original-vs-edited instruction and
+  rationale with a typewriter effect. It holds ~2.5 s, then snaps back and resumes.
 - **HUD.** A persistent header with the task name, an elapsed-time clock, and a
-  `STATUS` readout that changes colour with state
+  `STATUS` readout that changes colour with the live state
   (`EXECUTING` → `AWAITING INPUT` → `COMPLETE`).
 - **Terminal panel.** Fixed-width monospace, pale green/chrome text, a subtle
   scanline overlay, and a 1-frame chromatic-aberration glitch on state
@@ -205,8 +271,42 @@ frameworks, no external requests, no fonts fetched — it works fully offline.
 
 ---
 
+## Roadmap — toward a live, less-manual pipeline
+
+Today the trace is generated once (fixed scope) and replayed. The direction is to
+make the whole thing **drive off arbitrary input with less hand-authoring**:
+
+1. **Arbitrary tasks (partial).** `SWARMCORE_TASK` already lets the orchestrator
+   decompose any task into sub-agents dynamically — the "split the input" step is
+   the model's job, not a hardcoded list. The research agent (live `web_search`)
+   adapts fully; the next step is making the analyze/write `knowledge_lookup` KB
+   task-aware (or routing them through `web_search` for custom tasks) so the whole
+   trace, not just research, is task-relevant.
+2. **Model-labeled affect (shipped).** The emotion-labeling pass (`step.emotion`)
+   is the seam where a model, not a hand-tuned heuristic, decides state. It is
+   enum-constrained to the six frontend states, conf-gated, and back-compat.
+3. **A hosted "router" model (next).** Replace the batched build-time call with a
+   small hosted endpoint that, given raw input or a live step, returns
+   `{state, arousal, valence, conf}` (and, for decomposition, the sub-agent split).
+   The renderer already consumes exactly this shape, so nothing in the
+   visualization changes — only *where* the labels come from. The Claude API is
+   the reference implementation of that endpoint for now.
+4. **Live streaming (later).** Point the visualizer at a live run instead of a
+   recorded `trace.json`: stream steps in over WebSocket/SSE, classify each on
+   arrival (client heuristic first, hosted model to confirm), and let the face
+   react in real time — the same emotional instrument, but for a run happening now.
+
+The design deliberately keeps the **renderer decoupled** from *how* states are
+produced, so each step above is a drop-in swap behind the `step.emotion` contract.
+
+---
+
 ## Notes
 
 - Built with vanilla HTML/CSS/JS — no dependencies at runtime.
 - The generator targets `claude-opus-4-8` with adaptive extended thinking and
-  real server/custom tools via the official `anthropic` Python SDK.
+  real server/custom tools via the official `anthropic` Python SDK; the optional
+  emotion-labeling pass uses a cheaper model (`claude-haiku-4-5` by default).
+- The six emotional states, the keyword-intake animation, and the affect console
+  (mood / arousal-valence / `F·S·Y·D·A·R` bus / EEG) all run inside the single
+  canvas render loop — no new dependencies, still fully offline.

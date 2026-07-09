@@ -47,10 +47,34 @@ import anthropic
 # ---------------------------------------------------------------------------
 MODEL = "claude-opus-4-8"
 
-TASK = (
+# The demo task is the default, but can be overridden without editing the file:
+#     export SWARMCORE_TASK="Summarize the 2025 state of solid-state batteries."
+# This is the first step toward the "less-manual input split": the ORCHESTRATOR
+# decomposes whatever task it is given into sub-agents dynamically.
+#
+# SCOPE CAVEAT (important): overriding the task currently only reparameterizes the
+# ORCHESTRATOR and the RESEARCH sub-agent (which uses live web_search, so it adapts
+# to any task). The ANALYZE / WRITE sub-agents query a small, hardcoded SMR
+# ``knowledge_lookup`` KB, and the simulated steering edits toward "smr_economics" —
+# both are SMR-specific. So a non-SMR task yields a real, task-relevant research
+# section but an intentionally SMR-flavored analyze/write section. Making the KB
+# task-aware (or routing analyze/write through web_search for custom tasks) is a
+# roadmap item; see README "Roadmap".
+_DEFAULT_TASK = (
     "Research and draft a 150-word brief on the current state of small modular "
     "nuclear reactors (SMRs)."
 )
+TASK = os.environ.get("SWARMCORE_TASK", _DEFAULT_TASK)
+TASK_IS_CUSTOM = TASK != _DEFAULT_TASK
+
+# Optional emotion-labeling pass (see label_emotions). On by default; set
+# SWARMCORE_LABEL_EMOTIONS=0 to skip it (the visualizer then classifies with its
+# built-in JS heuristic — the trace renders identically either way).
+LABEL_EMOTIONS = os.environ.get("SWARMCORE_LABEL_EMOTIONS", "1") != "0"
+# A cheap model is plenty for per-step labeling; override if desired.
+EMOTION_MODEL = os.environ.get("SWARMCORE_EMOTION_MODEL", "claude-haiku-4-5-20251001")
+# The six states MUST match the frontend STATE keys / the F·S·Y·D·A·R bus.
+EMO_STATES = ["focus", "seek", "synthesis", "doubt", "alert", "resolve"]
 
 # Synthetic timeline: evenly-spaced timestamps so the frontend can animate the
 # replay at a natural pace. Real wall-clock latency is not used — the steps are
@@ -423,6 +447,103 @@ def run_tool_subagent(subtask: dict, role: str, inject_checkpoint: bool) -> list
 
 
 # ---------------------------------------------------------------------------
+# Optional emotion-labeling pass.
+# ---------------------------------------------------------------------------
+# One cheap, batched Claude call per sub-agent labels each step with an
+# emotional/cognitive state so the visualizer can drive colour + motion from a
+# real model judgement instead of only its client-side heuristic. Fully
+# back-compat: each label is written as an OPTIONAL nested ``step["emotion"]``
+# field; if this pass is skipped or fails, the field is simply absent and the
+# frontend falls back to its heuristic classifier (the trace still renders).
+#
+# Roadmap: this same enum-constrained pass is what lets an arbitrary,
+# user-supplied task be labeled without touching the renderer — the hook for a
+# hosted/parameterized "split the input less manually" model path.
+EMOTION_RUBRIC = (
+    "You label the EMOTIONAL / COGNITIVE state of each step of an AI sub-agent's "
+    "reasoning trace, for a data-visualization. Choose exactly one state per step "
+    "from this closed set:\n"
+    "  focus     — calm reasoning / planning\n"
+    "  seek      — reaching outward via a tool call / search\n"
+    "  synthesis — integrating results, ranking, concluding (insight)\n"
+    "  doubt     — noticing a mismatch, data-quality flag, contradiction, dead-end, "
+    "uncertainty\n"
+    "  alert     — a human steering checkpoint or a hard fault\n"
+    "  resolve   — final, confident output / task complete\n"
+    "For each step also give arousal 0-100 (mental energy), valence -1..1 "
+    "(negative..positive), and conf 0..1 (your confidence in the label). Return one "
+    "entry per step, aligned to the given [index] values."
+)
+
+
+def label_emotions(subagents: list[dict]) -> None:
+    schema = {
+        "type": "object",
+        "properties": {
+            "labels": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "index": {"type": "integer"},
+                        "state": {"type": "string", "enum": EMO_STATES},
+                        "arousal": {"type": "number"},
+                        "valence": {"type": "number"},
+                        "conf": {"type": "number"},
+                    },
+                    "required": ["index", "state", "arousal", "valence", "conf"],
+                    "additionalProperties": False,
+                },
+            }
+        },
+        "required": ["labels"],
+        "additionalProperties": False,
+    }
+
+    for agent in subagents:
+        steps = agent["steps"]
+        try:
+            lines = []
+            for i, s in enumerate(steps):
+                c = s.get("content")
+                txt = c if isinstance(c, str) else json.dumps(c)
+                lines.append(
+                    f"[{i}] type={s['type']} final={s.get('final', False)} "
+                    f":: {str(txt)[:220]}"
+                )
+            resp = client.messages.create(
+                model=EMOTION_MODEL,
+                max_tokens=1500,
+                system=EMOTION_RUBRIC,
+                output_config={"format": {"type": "json_schema", "schema": schema}},
+                messages=[
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Sub-agent role: {agent['role']}. Label these "
+                            f"{len(steps)} steps:\n" + "\n".join(lines)
+                        ),
+                    }
+                ],
+            )
+            data = json.loads(text_of(resp.content))
+            n = 0
+            for item in data.get("labels", []):
+                idx = item.get("index")
+                if isinstance(idx, int) and 0 <= idx < len(steps):
+                    steps[idx]["emotion"] = {
+                        "state": item["state"],
+                        "arousal": max(0, min(100, float(item.get("arousal", 50)))),
+                        "valence": max(-1.0, min(1.0, float(item.get("valence", 0)))),
+                        "conf": max(0.0, min(1.0, float(item.get("conf", 0.6)))),
+                    }
+                    n += 1
+            print(f"      -> labeled {agent['role']}: {n}/{len(steps)} steps")
+        except Exception as ex:  # non-fatal: leave this agent label-less
+            print(f"      !! emotion labeling skipped for {agent['role']}: {ex}")
+
+
+# ---------------------------------------------------------------------------
 # Assemble the trace with a synthetic evenly-spaced timeline.
 # ---------------------------------------------------------------------------
 def stamp(subagents: list[dict]) -> None:
@@ -438,6 +559,13 @@ def main() -> None:
         os.path.dirname(__file__), "..", "visualizer", "trace.json"
     )
 
+    if TASK_IS_CUSTOM:
+        print(
+            "  [note] SWARMCORE_TASK override active — the orchestrator + research "
+            "(web_search) adapt to it, but analyze/write use the SMR knowledge base "
+            "and the steering targets 'smr_economics' (see README 'Roadmap')."
+        )
+
     orchestrator = run_orchestrator()
     subtasks = orchestrator["subtasks"]
 
@@ -450,6 +578,10 @@ def main() -> None:
                 st, st["role"], inject_checkpoint=(st["role"] == "analyze")
             )
         subagents.append({"id": st["id"], "role": st["role"], "steps": steps})
+
+    if LABEL_EMOTIONS:
+        print("[5/5] labeling emotional/cognitive states...")
+        label_emotions(subagents)
 
     stamp(subagents)
 
