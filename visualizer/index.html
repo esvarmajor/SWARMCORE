@@ -15,32 +15,35 @@
 <meta name="twitter:image" content="https://raw.githubusercontent.com/esvarmajor/SWARMCORE/main/docs/og.png" />
 <style>
   :root{
-    --core:#39ff8a;        /* acid green core glow           */
-    --chrome-teal:#7fffd4; /* secondary chrome-teal accent   */
+    /* the FRAME is hue-neutral graphite so the face's traveling jewel-hue is the
+       only chroma on screen; JS recolours the live UI to the active state. */
+    --core:#4a9cff;        /* resting blue (= FOCUS home hue) */
+    --chrome-teal:#aebfd6; /* cool-neutral secondary accent   */
     --amber:#ffbe3d;       /* warning / checkpoint            */
     --breach:#ff3b3b;      /* alert / breach red              */
     --chrome:#dfe9e6;      /* chrome highlight                */
-    --ink:#8fb9ad;         /* dim terminal text               */
-    --bg0:#03060a;
-    --bg1:#060c08;
+    --ink:#8ea0b8;         /* dim terminal text (cool grey)   */
+    --neutral:150,170,200; /* cool-neutral rgb for frame lines */
+    --bg0:#04060c;
+    --bg1:#070b12;
     --mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0}
   body{
     background:
-      radial-gradient(ellipse 120% 90% at 45% 34%, #071310 0%, var(--bg1) 44%, var(--bg0) 100%);
+      radial-gradient(ellipse 120% 90% at 45% 34%, #0a0e14 0%, var(--bg1) 44%, var(--bg0) 100%);
     color:var(--chrome-teal);
     font-family:var(--mono);
     overflow:hidden;
     -webkit-font-smoothing:antialiased;
   }
-  /* faint fixed circuit-board texture */
+  /* faint fixed circuit-board texture (neutral, so it never fights the face hue) */
   body::before{
     content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.04;
     background-image:
-      linear-gradient(0deg,transparent 0 23px,rgba(57,255,138,.6) 23px 24px),
-      linear-gradient(90deg,transparent 0 23px,rgba(57,255,138,.6) 23px 24px);
+      linear-gradient(0deg,transparent 0 23px,rgba(150,170,200,.5) 23px 24px),
+      linear-gradient(90deg,transparent 0 23px,rgba(150,170,200,.5) 23px 24px);
     background-size:24px 24px,24px 24px;
   }
   body::after{
@@ -61,7 +64,7 @@
   }
   #hud .brand{
     font-weight:700;letter-spacing:.42em;font-size:15px;color:var(--core);
-    text-shadow:0 0 12px rgba(57,255,138,.6);white-space:nowrap;
+    text-shadow:0 0 12px rgba(150,170,200,.6);white-space:nowrap;
   }
   #hud .brand .tick{color:var(--chrome);opacity:.5;font-weight:400}
   #hud .task{
@@ -73,24 +76,24 @@
   #status{
     font-size:11.5px;font-weight:700;letter-spacing:.24em;padding:6px 13px;border-radius:2px;
     border:1px solid currentColor;white-space:nowrap;color:var(--core);
-    box-shadow:0 0 14px rgba(57,255,138,.25) inset;transition:color .35s ease, box-shadow .35s ease;
+    box-shadow:0 0 14px rgba(150,170,200,.25) inset;transition:color .35s ease, box-shadow .35s ease;
   }
   #status.await{color:var(--amber);box-shadow:0 0 16px rgba(255,190,61,.3) inset}
-  #status.done{color:var(--chrome-teal);box-shadow:0 0 16px rgba(127,255,212,.28) inset}
+  #status.done{color:var(--chrome-teal);box-shadow:0 0 16px rgba(150,170,200,.28) inset}
 
   /* ---- terminal side panel ---- */
   #terminal{
     position:relative;flex:0 0 380px;max-width:42vw;
     background:linear-gradient(180deg, rgba(4,11,9,.92), rgba(3,7,6,.96));
-    border-left:1px solid rgba(127,255,212,.16);
-    box-shadow:-24px 0 60px -30px rgba(0,0,0,.8), inset 1px 0 0 rgba(57,255,138,.08);
+    border-left:1px solid rgba(150,170,200,.16);
+    box-shadow:-24px 0 60px -30px rgba(0,0,0,.8), inset 1px 0 0 rgba(150,170,200,.08);
     display:flex;flex-direction:column;overflow:hidden;
   }
   #terminal .thead{
-    padding:14px 16px 10px;border-bottom:1px solid rgba(127,255,212,.12);
+    padding:14px 16px 10px;border-bottom:1px solid rgba(150,170,200,.12);
     font-size:10.5px;letter-spacing:.28em;color:var(--core);
     display:flex;justify-content:space-between;align-items:center;
-    text-shadow:0 0 10px rgba(57,255,138,.4);
+    text-shadow:0 0 10px rgba(150,170,200,.4);
   }
   #terminal .thead .dot{width:7px;height:7px;border-radius:50%;background:var(--core);
     box-shadow:0 0 8px var(--core);animation:pulseDot 1.4s ease-in-out infinite}
@@ -109,7 +112,7 @@
   #log .t-orch{color:var(--chrome)}
   #log .call{color:var(--chrome-teal)}
   #log .result{color:var(--ink)}
-  #log .out{color:var(--core);text-shadow:0 0 8px rgba(57,255,138,.35)}
+  #log .out{color:var(--core);text-shadow:0 0 8px rgba(150,170,200,.35)}
   #log .muted{color:#5f7d75}
   #log .cp{
     display:block;margin:6px 0;padding:8px 10px;border:1px solid rgba(255,190,61,.5);
@@ -142,7 +145,7 @@
   #stage.glitch canvas#face{animation:aberr .34s steps(2) 2}
   @keyframes aberr{
     0%{filter:none}
-    50%{filter:drop-shadow(2px 0 0 rgba(255,59,59,.6)) drop-shadow(-2px 0 0 rgba(127,255,212,.6))}
+    50%{filter:drop-shadow(2px 0 0 rgba(255,59,59,.6)) drop-shadow(-2px 0 0 rgba(60,180,255,.6))}
     100%{filter:none}
   }
 
@@ -150,28 +153,28 @@
   #controls{
     position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:7;
     display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:4px;
-    background:rgba(4,11,9,.72);border:1px solid rgba(127,255,212,.18);
-    box-shadow:0 8px 30px -12px rgba(0,0,0,.7), inset 0 0 20px rgba(57,255,138,.05);
+    background:rgba(4,11,9,.72);border:1px solid rgba(150,170,200,.18);
+    box-shadow:0 8px 30px -12px rgba(0,0,0,.7), inset 0 0 20px rgba(150,170,200,.05);
     backdrop-filter:blur(3px);
   }
   #controls button{
     font-family:var(--mono);font-size:11px;letter-spacing:.14em;font-weight:700;
     color:var(--chrome-teal);background:transparent;
-    border:1px solid rgba(127,255,212,.28);border-radius:3px;
+    border:1px solid rgba(150,170,200,.28);border-radius:3px;
     padding:7px 12px;cursor:pointer;transition:all .18s ease;min-width:44px;
   }
   #controls button:hover{color:var(--core);border-color:var(--core);
-    box-shadow:0 0 12px rgba(57,255,138,.3);background:rgba(57,255,138,.06)}
+    box-shadow:0 0 12px rgba(150,170,200,.3);background:rgba(150,170,200,.06)}
   #controls button:active{transform:translateY(1px)}
-  #controls .sep{width:1px;height:20px;background:rgba(127,255,212,.18)}
+  #controls .sep{width:1px;height:20px;background:rgba(150,170,200,.18)}
   #controls .lbl{font-size:9.5px;letter-spacing:.2em;color:#5f7d75;padding-left:2px}
 
   /* ---- affect console (the emotional/rational-state instrument) ---- */
   #affect{
     position:absolute;top:56px;right:16px;z-index:6;width:196px;
     padding:9px 10px 8px;border-radius:4px;pointer-events:none;
-    background:rgba(4,11,9,.60);border:1px solid rgba(127,255,212,.16);
-    box-shadow:0 8px 30px -14px rgba(0,0,0,.7), inset 0 0 18px rgba(57,255,138,.04);
+    background:rgba(4,11,9,.60);border:1px solid rgba(150,170,200,.16);
+    box-shadow:0 8px 30px -14px rgba(0,0,0,.7), inset 0 0 18px rgba(150,170,200,.04);
     backdrop-filter:blur(3px);
   }
   #affect .ahead{
@@ -180,7 +183,7 @@
   }
   #affect .ahead .mood{
     font-weight:700;letter-spacing:.16em;font-size:12px;color:var(--core);
-    text-shadow:0 0 8px rgba(57,255,138,.5);transition:color .3s ease,text-shadow .3s ease;
+    text-shadow:0 0 8px rgba(150,170,200,.5);transition:color .3s ease,text-shadow .3s ease;
   }
   #affect .nums{
     font-size:9.5px;letter-spacing:.05em;color:#6f978b;margin-bottom:6px;
@@ -193,7 +196,7 @@
     #affect{top:auto;bottom:74px;right:10px;width:170px}
     canvas#eeg{width:150px}
     #app{flex-direction:column}
-    #terminal{flex:0 0 40%;max-width:none;border-left:none;border-top:1px solid rgba(127,255,212,.16)}
+    #terminal{flex:0 0 40%;max-width:none;border-left:none;border-top:1px solid rgba(150,170,200,.16)}
   }
 </style>
 </head>
@@ -251,7 +254,7 @@ function clip(s,n){ s=String(s==null?"":s); return s.length>n?s.slice(0,n-1)+"�
 
 // pacing (ms of trace time per step type) + hold/loop
 var DUR={reasoning:1000,reasoningFinal:1600,tool_call:1250,tool_result:1250,checkpoint:2900};
-var END_HOLD=2400;
+var END_HOLD=3200;   // room for the resolve aurora + gold flare finale
 
 var FONT='JetBrains Mono,IBM Plex Mono,ui-monospace,Menlo,monospace';
 var EEG_N=140;          // EEG ring-buffer sample count
@@ -262,16 +265,25 @@ var INTAKE_MAX=6;       // max keyword tokens in flight at once
 //   core = the field colour   ·   glow = the highlight target for lit cells
 // Motion scalars (churn/breath/seek/doubt/freeze/tremor) let a viewer read
 // the state through MOTION as well as hue (colour is never the sole channel).
+// FULL-WHEEL emotion-logic palette. One state is ever active, so the FACE is a
+// single jewel-hue at any instant that travels the wheel over the run. HARMONY
+// ("one material"): every core sits in a tight S/V band and every glow is that
+// same hue pulled to a near-white, so the brightest filaments of ANY state bloom
+// to their OWN tinted-white (see the symmetric lerp in drawFace).
+//   FOCUS blue (calm/home) · SEEK cyan (reach) · SYNTH green (insight) ·
+//   DOUBT violet (unease) · ALERT red (attention) · RESOLVE gold→white (done)
 var STATE={
-  focus:     {label:"FOCUS", ch:"F", core:[57,255,138],  glow:[200,255,228], warmth: 0.00, churn:1.00, bHz:0.80, bAmp:0.050, arousal:45, valence: 0.10},
-  seek:      {label:"SEEK",  ch:"S", core:[127,255,212], glow:[223,255,242], warmth:-0.15, churn:1.30, bHz:0.75, bAmp:0.045, arousal:60, valence: 0.20, seek:1},
-  synthesis: {label:"SYNTH", ch:"Y", core:[143,255,192], glow:[234,255,246], warmth:-0.25, churn:0.60, bHz:0.80, bAmp:0.050, arousal:55, valence: 0.60, collapse:1},
-  doubt:     {label:"DOUBT", ch:"D", core:[168,140,64],  glow:[214,196,120], warmth: 0.30, churn:1.55, bHz:1.30, bAmp:0.038, arousal:70, valence:-0.42, doubt:1},
-  alert:     {label:"ALERT", ch:"A", core:[255,190,61],  glow:[255,230,168], warmth: 0.90, churn:1.10, bHz:2.10, bAmp:0.020, arousal:92, valence:-0.60, tremor:1},
-  resolve:   {label:"RSLV",  ch:"R", core:[190,255,219], glow:[255,255,255], warmth:-0.10, churn:0.12, bHz:0.55, bAmp:0.070, arousal:45, valence: 0.90, freeze:1}
+  focus:     {label:"FOCUS", ch:"F", core:[56,132,255],  glow:[206,224,255], pulse:[110,165,255], warmth: 0.00, churn:1.00, bHz:0.80, bAmp:0.050, arousal:45, valence: 0.10},
+  seek:      {label:"SEEK",  ch:"S", core:[44,209,242],  glow:[199,246,255], pulse:[97,229,255],  warmth:-0.15, churn:1.30, bHz:0.75, bAmp:0.045, arousal:60, valence: 0.20, seek:1},
+  synthesis: {label:"SYNTH", ch:"Y", core:[52,232,150],  glow:[206,255,228], pulse:[110,255,190], warmth:-0.25, churn:0.60, bHz:0.80, bAmp:0.050, arousal:55, valence: 0.60, collapse:1},
+  doubt:     {label:"DOUBT", ch:"D", core:[150,72,240],  glow:[221,201,255], pulse:[178,120,255], warmth: 0.10, churn:1.55, bHz:1.30, bAmp:0.038, arousal:70, valence:-0.42, doubt:1},
+  alert:     {label:"ALERT", ch:"A", core:[250,64,35],   glow:[255,189,179], pulse:[255,109,87],  warmth: 0.90, churn:1.10, bHz:2.10, bAmp:0.020, arousal:92, valence:-0.60, tremor:1},
+  resolve:   {label:"RSLV",  ch:"R", core:[255,227,115], glow:[255,250,230], pulse:[255,235,153], warmth:-0.10, churn:0.12, bHz:0.55, bAmp:0.070, arousal:45, valence: 0.90, freeze:1}
 };
 var BUS=["focus","seek","synthesis","doubt","alert","resolve"];  // F·S·Y·D·A·R
-var EMBER=[224,74,52];   // doubt: shadow-only furrow tint (brow/eye sockets)
+// AURORA[6] — the six cores in state order, for the resolve rainbow-sweep finale
+var AURORA=[STATE.focus.core,STATE.seek.core,STATE.synthesis.core,STATE.doubt.core,STATE.alert.core,STATE.resolve.core];
+var EMBER=[150,30,72];   // doubt: shadow-only DEEP-CRIMSON furrow (harmonizes w/ violet, never a 2nd hue)
 
 // per-state FACIAL EXPRESSION — offsets applied to the dark features (brow /
 // eyes / mouth / furrow) so the mask morphs into an expression. Head geometry
@@ -279,13 +291,19 @@ var EMBER=[224,74,52];   // doubt: shadow-only furrow tint (brow/eye sockets)
 //   brow: vertical brow+eye shift (- up / + down)   furrow: 0..1 inner-brow crease
 //   eyeOpen: dark-socket height (squint<1 / wide>1)  eyeW: socket width
 //   mouthCurve: corner lift (+ smile / - frown)      mouthOpen: mouth-gap height
+// 18-parameter expression per state — a real face, not soft blobs.
+//  browY: brow+eye vertical shift   browTilt: +raise OUTER (arch) / -raise INNER (worry)
+//  furrow: glabella crease  lidUpper/lidLower: lids slide shut / squint up
+//  eyeOpen/eyeW: socket size   gazeX/gazeY: pupil offset   cheekRaise: Duchenne lift
+//  jawDrop/mouthOpen: gap   mouthCurve: +smile/-frown   mouthWidth   headTilt/headTurn
+//  asym: constant unevenness so the face is never a dead mirror
 var EXPR={
-  focus:     {brow: 0.000, furrow:0.0, eyeOpen:1.00, eyeW:1.00, mouthCurve: 0.000, mouthOpen:1.00},
-  seek:      {brow:-0.012, furrow:0.0, eyeOpen:1.12, eyeW:1.06, mouthCurve: 0.010, mouthOpen:1.00},
-  synthesis: {brow:-0.004, furrow:0.0, eyeOpen:0.95, eyeW:1.00, mouthCurve: 0.060, mouthOpen:1.10},
-  doubt:     {brow: 0.018, furrow:1.0, eyeOpen:0.60, eyeW:0.94, mouthCurve:-0.050, mouthOpen:0.80},
-  alert:     {brow:-0.032, furrow:0.25,eyeOpen:1.55, eyeW:1.20, mouthCurve:-0.008, mouthOpen:2.60},
-  resolve:   {brow:-0.006, furrow:0.0, eyeOpen:1.00, eyeW:1.00, mouthCurve: 0.070, mouthOpen:1.18}
+  focus:     {browY: 0.000, browTilt:-0.03, browThick:0.6, furrow:0.0, lidUpper:0.10, lidLower:0.05, eyeOpen:1.00, eyeW:1.00, gazeX: 0.00, gazeY: 0.00, cheekRaise:0.10, jawDrop:0.00, mouthCurve: 0.010, mouthOpen:0.90, mouthWidth:1.00, headTilt:-0.010, headTurn: 0.00, asym:0.03},
+  seek:      {browY:-0.020, browTilt: 0.12, browThick:0.5, furrow:0.0, lidUpper:0.03, lidLower:0.00, eyeOpen:1.15, eyeW:1.06, gazeX: 0.45, gazeY:-0.05, cheekRaise:0.12, jawDrop:0.05, mouthCurve: 0.020, mouthOpen:1.00, mouthWidth:1.00, headTilt: 0.040, headTurn: 0.03, asym:0.03},
+  synthesis: {browY:-0.010, browTilt: 0.06, browThick:0.5, furrow:0.0, lidUpper:0.12, lidLower:0.35, eyeOpen:0.92, eyeW:1.00, gazeX: 0.00, gazeY:-0.04, cheekRaise:0.60, jawDrop:0.02, mouthCurve: 0.078, mouthOpen:1.05, mouthWidth:1.06, headTilt:-0.020, headTurn: 0.00, asym:0.05},
+  doubt:     {browY: 0.015, browTilt:-0.32, browThick:0.7, furrow:1.0, lidUpper:0.32, lidLower:0.22, eyeOpen:0.62, eyeW:0.94, gazeX:-0.35, gazeY: 0.12, cheekRaise:0.00, jawDrop:0.00, mouthCurve:-0.045, mouthOpen:0.80, mouthWidth:0.94, headTilt:-0.050, headTurn:-0.02, asym:0.09},
+  alert:     {browY:-0.030, browTilt: 0.10, browThick:0.4, furrow:0.30,lidUpper:0.00, lidLower:0.00, eyeOpen:1.60, eyeW:1.22, gazeX: 0.00, gazeY: 0.00, cheekRaise:0.00, jawDrop:0.50, mouthCurve:-0.010, mouthOpen:2.60, mouthWidth:0.90, headTilt: 0.000, headTurn: 0.00, asym:0.02},
+  resolve:   {browY:-0.006, browTilt: 0.00, browThick:0.4, furrow:0.0, lidUpper:0.30, lidLower:0.20, eyeOpen:0.95, eyeW:1.00, gazeX: 0.00, gazeY:-0.06, cheekRaise:0.45, jawDrop:0.00, mouthCurve: 0.072, mouthOpen:1.05, mouthWidth:1.04, headTilt: 0.000, headTurn: 0.00, asym:0.02}
 };
 
 // tool identity colours for the labeled pulses (distinct from the emotion hues,
@@ -364,7 +382,12 @@ Swarmcore.prototype.start=function(){
   this.reset();
 
   var self=this;
-  window.addEventListener("resize",function(){ self.setupCanvas(); });
+  // coalesce resize: rebuilding 6 supersampled masks is heavy, so do it once
+  // the drag settles (a rapid resize storm would otherwise jank the main thread).
+  window.addEventListener("resize",function(){
+    if(self._rz) cancelAnimationFrame(self._rz);
+    self._rz=requestAnimationFrame(function(){ self._rz=0; self.setupCanvas(); self.setupEEG(); });
+  });
   this._last=performance.now(); this._faceLast=0;
   function pump(){ self.tick(performance.now()); }
   (function raf(){ pump(); requestAnimationFrame(raf); })();
@@ -443,14 +466,15 @@ Swarmcore.prototype.setupEEG=function(){
 // features (brow/eyes/mouth/furrow) move per `expr`, so the face emotes.
 Swarmcore.prototype.buildMaskFor=function(expr){
   var cols=this.cols, rows=this.rows, cw=this.cellW, chh=this.cellH;
-  var m=document.createElement("canvas"); m.width=cols; m.height=rows;
+  var SS=3, MW=cols*SS, MH=rows*SS;              // 3x SUPERSAMPLE → smooth curves
+  var m=document.createElement("canvas"); m.width=MW; m.height=MH;
   var x=m.getContext("2d");
-  x.fillStyle="#000"; x.fillRect(0,0,cols,rows);
+  x.fillStyle="#000"; x.fillRect(0,0,MW,MH);
 
   var Hp=this.H, cxp=this.W*0.5;                 // pixel space
   function blob(color){
     return function(pxX,pxY,rxPx,ryPx,a){
-      var X=pxX/cw, Y=pxY/chh, rx=rxPx/cw, ry=ryPx/chh;
+      var X=pxX/cw*SS, Y=pxY/chh*SS, rx=Math.max(0.6,rxPx/cw*SS), ry=Math.max(0.6,ryPx/chh*SS);
       x.save(); x.translate(X,Y); x.scale(1, ry/rx);
       var g=x.createRadialGradient(0,0,0,0,0,rx);
       g.addColorStop(0,"rgba("+color+","+a+")");
@@ -469,54 +493,110 @@ Swarmcore.prototype.buildMaskFor=function(expr){
   function RX(f){ return f*fW; }
   function RY(f){ return f*fH; }
 
-  // additive light: cranium, jaw, cheeks, nose, neck, shoulders (expression-invariant)
+  var e=expr;
+  // HEAD transform: rotate features by headTilt + slide by headTurn about the
+  // face centre (0,0.42). Cranium/jaw stay put so the skull never wobbles.
+  var ht=e.headTilt||0, hn=e.headTurn||0, cyf=0.42, ct=Math.cos(ht), stt=Math.sin(ht);
+  function FX(fx,fy){ var dx=fx, dy=fy-cyf; return X(dx*ct - dy*stt + hn); }
+  function FY(fx,fy){ var dx=fx, dy=fy-cyf; return Y(cyf + dx*stt + dy*ct); }
+
+  // additive LIGHT — cranium/jaw/forehead/cheeks/nose/neck/shoulders
   x.globalCompositeOperation="lighter";
   glow(X(0),      Y(0.33), RX(0.400), RY(0.320), 1.00); // cranium
   glow(X(0),      Y(0.52), RX(0.330), RY(0.210), 0.98); // jaw / chin
   glow(X(0),      Y(0.24), RX(0.260), RY(0.090), 0.52); // forehead
-  glow(X(-0.180), Y(0.46), RX(0.150), RY(0.100), 0.55); // left cheek
-  glow(X( 0.180), Y(0.46), RX(0.150), RY(0.100), 0.55); // right cheek
-  glow(X(0),      Y(0.44), RX(0.052), RY(0.100), 0.55); // nose ridge
-  glow(X(0),      Y(0.70), RX(0.175), RY(0.150), 0.55); // neck
-  glow(X(0),      Y(1.00), RX(0.720), RY(0.150), 0.50); // shoulders (a hint)
+  var chR=e.cheekRaise||0;                               // Duchenne cheek lift
+  glow(X(-0.180), Y(0.46-chR*0.02), RX(0.150), RY(0.100+chR*0.02), 0.55+chR*0.22);
+  glow(X( 0.180), Y(0.46-chR*0.02), RX(0.150), RY(0.100+chR*0.02), 0.55+chR*0.22);
+  glow(FX(0,0.44),FY(0,0.44), RX(0.050), RY(0.100), 0.55); // nose ridge
+  glow(X(0),      Y(0.70), RX(0.175), RY(0.150), 0.55);    // neck
+  glow(X(0),      Y(1.00), RX(0.720), RY(0.150), 0.50);    // shoulders
 
-  // subtractive shadow: the EXPRESSIVE features (driven by expr)
-  var e=expr, brow=e.brow, eyeY=0.400+brow*0.6;
+  // subtractive SHADOW + expressive features
   x.globalCompositeOperation="source-over";
-  dark(X(-0.175), Y(eyeY), RX(0.095*e.eyeW), RY(0.045*e.eyeOpen), 0.98); // left eye
-  dark(X( 0.175), Y(eyeY), RX(0.095*e.eyeW), RY(0.045*e.eyeOpen), 0.98); // right eye
-  dark(X(0),      Y(0.355+brow), RX(0.330), RY(0.026), 0.52);            // brow band
-  dark(X(-0.320), Y(0.340), RX(0.090), RY(0.170), 0.72);                 // left temple
-  dark(X( 0.320), Y(0.340), RX(0.090), RY(0.170), 0.72);                 // right temple
-  dark(X(0),      Y(0.520), RX(0.085), RY(0.020), 0.60);                 // under-nose
-  // inner-brow furrow (concern/anger): lowered inner brows + a glabella crease
-  if(e.furrow>0){
-    dark(X(-0.085), Y(0.372+brow+e.furrow*0.010), RX(0.055), RY(0.032), 0.52*e.furrow);
-    dark(X( 0.085), Y(0.372+brow+e.furrow*0.010), RX(0.055), RY(0.032), 0.52*e.furrow);
-    dark(X(0),      Y(0.360+brow),                RX(0.020), RY(0.048), 0.45*e.furrow);
-  }
-  // mouth — corners lift by mouthCurve (smile/frown), gap by mouthOpen
-  var mc=e.mouthCurve, mo=e.mouthOpen;
-  dark(X(0),      Y(0.585),      RX(0.070), RY(0.017*mo), 0.55);         // mouth centre
-  dark(X(-0.078), Y(0.585-mc),   RX(0.045), RY(0.014*mo), 0.50);         // left corner
-  dark(X( 0.078), Y(0.585-mc),   RX(0.045), RY(0.014*mo), 0.50);         // right corner
+  var brow=e.browY||0, tilt=e.browTilt||0, thick=e.browThick||0.5, furrow=e.furrow||0, asym=e.asym||0;
+  var eyeOpen=e.eyeOpen, eyeW=e.eyeW, lidU=e.lidUpper||0, lidL=e.lidLower||0;
+  var gzX=e.gazeX||0, gzY=e.gazeY||0;
+  var eyeYf=0.400+brow*0.6, eyeXf=0.175, eyeHalf=0.050*eyeOpen;
 
-  // vignette so the head sits in a dark field of code
-  var vcx=X(0)/cw, vcy=Y(0.42)/chh;
-  var vg=x.createRadialGradient(vcx,vcy,RY(0.10)/chh, vcx,vcy,RY(1.0)/chh);
+  // BROWS — three dark crease blobs (inner→outer) rotated by tilt + a bright brow-bone
+  for(var si=0; si<2; si++){
+    var sgn=si?1:-1;
+    var innerXf=sgn*0.080, outerXf=sgn*0.290, baseY=0.352+brow;
+    var innerY=baseY + tilt*0.030 - furrow*0.008 + (si?0:asym*0.020); // -tilt raises inner
+    var outerY=baseY - tilt*0.032;                                    // +tilt raises outer
+    var midXf=(innerXf*2+outerXf)/3, midY=(innerY*2+outerY)/3;
+    dark(FX(innerXf,innerY), FY(innerXf,innerY), RX(0.064), RY(0.017), 0.60+0.34*thick);
+    dark(FX(midXf,midY),     FY(midXf,midY),     RX(0.062), RY(0.016), 0.52+0.30*thick);
+    dark(FX(outerXf,outerY), FY(outerXf,outerY), RX(0.078), RY(0.015), 0.44+0.28*thick);
+    var mxf=(innerXf+outerXf)/2, myf=(innerY+outerY)/2-0.024;
+    glow(FX(mxf,myf), FY(mxf,myf), RX(0.115), RY(0.015), 0.15);       // brow-bone highlight
+  }
+  if(furrow>0){                                                        // twin vertical glabella creases
+    dark(FX(-0.028,0.360+brow), FY(-0.028,0.360+brow), RX(0.012), RY(0.048), 0.5*furrow);
+    dark(FX( 0.028,0.360+brow), FY( 0.028,0.360+brow), RX(0.012), RY(0.048), 0.5*furrow);
+  }
+
+  // EYES — deep-set orbital recess + dark opening + lids + pupil + living catch-light
+  for(var sj=0; sj<2; sj++){
+    var sg=sj?1:-1, exf=sg*eyeXf, eyf=eyeYf + (sj?0:asym*0.010);
+    dark(FX(exf,eyf-0.004), FY(exf,eyf-0.004), RX(0.126*eyeW), RY(eyeHalf*1.6+0.012), 0.32); // orbital recess
+    dark(FX(exf,eyf),       FY(exf,eyf),       RX(0.100*eyeW), RY(eyeHalf*1.05), 0.96);      // eye opening
+    var lidCy=eyf - eyeHalf + lidU*(2*eyeHalf), lidA=0.55*Math.min(1,lidU*1.6);
+    if(lidA>0.02) glow(FX(exf,lidCy-eyeHalf*0.35), FY(exf,lidCy-eyeHalf*0.35), RX(0.100*eyeW), RY(eyeHalf*(0.55+lidU*0.9)), lidA); // upper lid (only when lowering)
+    if(lidU>0.50) dark(FX(exf,lidCy), FY(exf,lidCy), RX(0.096*eyeW), RY(0.006), 0.55*lidU);  // lash line
+    if(lidL>0.02) glow(FX(exf,eyf+eyeHalf-lidL*eyeHalf), FY(exf,eyf+eyeHalf-lidL*eyeHalf), RX(0.088*eyeW), RY(eyeHalf*0.45), 0.42); // lower lid (squint)
+    if(lidU<0.70){
+      var pxf=exf+gzX*0.032, pyf=eyf+gzY*0.030;
+      glow(FX(pxf,pyf), FY(pxf,pyf), RX(0.028), RY(0.032), 0.30);   // faint living glint
+      dark(FX(pxf,pyf), FY(pxf,pyf), RX(0.016), RY(0.019), 0.72);   // pupil
+      glow(FX(pxf-0.010,pyf-0.013), FY(pxf-0.010,pyf-0.013), RX(0.008), RY(0.009), 1.0); // specular catch-light
+    }
+  }
+  dark(FX(-0.320,0.340), FY(-0.320,0.340), RX(0.086), RY(0.160), 0.62);  // temples
+  dark(FX( 0.320,0.340), FY( 0.320,0.340), RX(0.086), RY(0.160), 0.62);
+  dark(FX(0,0.500), FY(0,0.500), RX(0.028), RY(0.052), 0.18);            // nose side shadow
+  dark(FX(-0.030,0.522), FY(-0.030,0.522), RX(0.015), RY(0.013), 0.5);   // nostrils
+  dark(FX( 0.030,0.522), FY( 0.030,0.522), RX(0.015), RY(0.013), 0.5);
+
+  // MOUTH — 5-point arc: corners lift by mouthCurve, lips + open cavity
+  var mc=e.mouthCurve||0, mo=e.mouthOpen||1, mw=e.mouthWidth||1, jd=e.jawDrop||0;
+  var mBaseY=0.585 + jd*0.022;
+  for(var p=-2;p<=2;p++){
+    var pn=p/2, mx=pn*0.092*mw, my=mBaseY - mc*pn*pn;   // corners (|pn|=1) rise on a smile
+    dark(FX(mx,my), FY(mx,my), RX(0.032), RY(0.012*mo+0.006), 0.58);
+  }
+  if(mo>1.6) dark(FX(0,mBaseY+0.014), FY(0,mBaseY+0.014), RX(0.060*mw), RY(0.024*(mo-1)), 0.78); // gasp cavity
+  glow(FX(0,mBaseY+0.024), FY(0,mBaseY+0.024), RX(0.080*mw), RY(0.012), 0.30);   // lower-lip catch
+  glow(FX(0,mBaseY-0.020), FY(0,mBaseY-0.020), RX(0.055*mw), RY(0.009), 0.15);   // upper-lip catch
+  if(mc>0.02){ var nf=Math.min(1,mc*12);                                          // nasolabial folds
+    dark(FX(-0.105,0.520), FY(-0.105,0.520), RX(0.016), RY(0.055), 0.24*nf);
+    dark(FX( 0.105,0.520), FY( 0.105,0.520), RX(0.016), RY(0.055), 0.24*nf); }
+  dark(FX(-0.250,0.560), FY(-0.250,0.560), RX(0.078), RY(0.068), 0.18);  // under-cheek / jaw hollow
+  dark(FX( 0.250,0.560), FY( 0.250,0.560), RX(0.078), RY(0.068), 0.18);
+
+  // vignette (supersampled coords)
+  var vcx=X(0)/cw*SS, vcy=Y(0.42)/chh*SS;
+  var vg=x.createRadialGradient(vcx,vcy,RY(0.10)/chh*SS, vcx,vcy,RY(1.0)/chh*SS);
   vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(0.66,"rgba(0,0,0,0)");
   vg.addColorStop(1,"rgba(0,0,0,0.97)");
-  x.fillStyle=vg; x.fillRect(0,0,cols,rows);
+  x.fillStyle=vg; x.fillRect(0,0,MW,MH);
 
-  // stash the (expression-invariant) centroid for keyword flight paths
+  // stash centroid + eye centres (for flight paths + the blink)
   this.faceCX=cxp; this.faceCY=top+0.42*fH;
+  this._eyeC=[{x:X(-eyeXf),y:Y(eyeYf)},{x:X(eyeXf),y:Y(eyeYf)}];
 
-  var img=x.getImageData(0,0,cols,rows).data, n=cols*rows;
-  var out=new Float32Array(n);
-  for(var i=0;i<n;i++){
-    var v=img[i*4]/255;
-    v=clamp((v-0.17)/0.72, 0, 1);   // contrast: crush background, lift the face
-    out[i]=Math.pow(v,0.80);
+  // BOX-DOWNSAMPLE each SSxSS block (avg red) → contrast crush → mask
+  var img=x.getImageData(0,0,MW,MH).data, out=new Float32Array(cols*rows);
+  for(var r=0;r<rows;r++){
+    for(var c=0;c<cols;c++){
+      var acc=0;
+      for(var yy=0;yy<SS;yy++){ var off=((r*SS+yy)*MW + c*SS)*4;
+        for(var xx=0;xx<SS;xx++) acc+=img[off+xx*4]; }
+      var v=acc/(SS*SS)/255;
+      v=clamp((v-0.17)/0.72, 0, 1);
+      out[r*cols+c]=Math.pow(v,0.80);
+    }
   }
   return out;
 };
@@ -547,6 +627,18 @@ Swarmcore.prototype.buildMasks=function(){
   for(var z=0;z<3;z++){ if(!this.zoneTargets[z].length){
     var mc=Math.floor(cols*(z+0.5)/3), mr=Math.floor(rows*0.32);
     this.zoneTargets[z].push({col:clamp(mc,1,cols-2),row:mr}); } }
+
+  // eye-band cells (flag map) for the periodic blink — dims these briefly
+  this.isEye=new Uint8Array(cols*rows);
+  if(this._eyeC){
+    for(var ei=0;ei<this._eyeC.length;ei++){
+      var ecol=Math.round(this._eyeC[ei].x/this.cellW), erow=Math.round(this._eyeC[ei].y/this.cellH);
+      for(var dr=-2;dr<=2;dr++) for(var dc=-4;dc<=4;dc++){
+        var rr2=erow+dr, cc2=ecol+dc;
+        if(rr2>=0&&rr2<rows&&cc2>=0&&cc2<cols) this.isEye[rr2*cols+cc2]=1;
+      }
+    }
+  }
 };
 
 Swarmcore.prototype.initGrid=function(){
@@ -608,6 +700,9 @@ Swarmcore.prototype.reset=function(){
   this.freezeT=0; this.tremorT=0; this.frustT=0;
   this.curStateId="focus"; this._stateSince=0; this._now=0; this._synthT=-9999;
   this.tokens=[]; this.pulses=[]; this.busLvl=[0,0,0,0,0,0];
+  this.pendingCall=[null,null,null];        // a word exhaled per zone, awaiting its answer
+  this._flareT=-1e9; this._flareMag=0;       // face "pulses back" on a returned result
+  this._auroraT=-1e9;                        // resolve finale: full-wheel rainbow sweep
   if(this.masks){ this.mask=this.masks.focus.slice(); this.maskT=this.masks.focus; }
   this.eegBuf=new Float32Array(EEG_N); this.eegHead=0; this._eegPhase=0; this._eegLast=0;
 
@@ -696,12 +791,15 @@ Swarmcore.prototype.tick=function(now){
   // ease affect channels + zone glow
   this.easeAffect(dt);
   for(var z=0;z<3;z++) this.zoneE[z]*=Math.pow(0.9,dt/60);
+  // event-synced animations advance on CLOCK time (dt*speed) so the emit→pending→
+  // return pairing holds at any playback speed; the event clock is scaled the same.
+  var sdt=dt*this.speed;
   // age bursts
   var kept=[]; for(var b=0;b<this.bursts.length;b++){
-    this.bursts[b].age+=dt; if(this.bursts[b].age<this.bursts[b].life) kept.push(this.bursts[b]); }
+    this.bursts[b].age+=sdt; if(this.bursts[b].age<this.bursts[b].life) kept.push(this.bursts[b]); }
   this.bursts=kept;
   // age keyword tokens + decay imprint glow + bus afterglow
-  if(this.playing) this.ageTokens(dt);
+  if(this.playing) this.ageTokens(sdt);
   if(this.gboost){ var gd=Math.pow(0.90,dt/33), gb=this.gboost;
     for(var gi=0;gi<gb.length;gi++){ if(gb[gi]>0.002) gb[gi]*=gd; else if(gb[gi]) gb[gi]=0; } }
   if(this.busLvl){ var bd=Math.pow(0.985,dt/16);
@@ -710,9 +808,9 @@ Swarmcore.prototype.tick=function(now){
   // ease the facial EXPRESSION (mask morph) toward the current state
   if(this.maskT && this.mask){ var mk=Math.min(1,dt/300), lm=this.mask, tm=this.maskT;
     for(var mi=0;mi<lm.length;mi++) lm[mi]+=(tm[mi]-lm[mi])*mk; }
-  // age tool pulses (frozen while paused, like tokens)
+  // age tool pulses (clock time, frozen while paused, like tokens)
   if(this.playing && this.pulses && this.pulses.length){ var pk=[];
-    for(var pi=0;pi<this.pulses.length;pi++){ this.pulses[pi].age+=dt;
+    for(var pi=0;pi<this.pulses.length;pi++){ this.pulses[pi].age+=sdt;
       if(this.pulses[pi].age<this.pulses[pi].life) pk.push(this.pulses[pi]); }
     this.pulses=pk; }
 
@@ -734,6 +832,8 @@ Swarmcore.prototype.onComplete=function(){
   this.completed=true;
   this.setStatus("COMPLETE","done");
   this.setEmotion("resolve",1,0,true);   // crystallize + hold through END_HOLD
+  this._auroraT=this._now;               // flash the whole run's palette across the face
+  this.flareOn(1.4);                     // then bloom to gold
   this.glitch();
   this.append('<div class="line"><span class="out">◈ RUN COMPLETE — '+this.nAgents+
     ' agents · face resolved from trace</span></div>');
@@ -749,18 +849,24 @@ Swarmcore.prototype.enterStep=function(ev, idx){
   this.setEmotion(cls.id, cls.inten, cls.frust, false,
                   cls.labeled?cls.arousal:null, cls.labeled?cls.valence:null);
   if(cls.id==="synthesis") this._synthT=this._now;     // trigger the insight bloom
-  this.spawnTokens(ev, idx==null?this.cursor:idx);
+  var si=(idx==null?this.cursor:idx), st=STATE[this.curStateId]||STATE.focus;
 
-  var collapse=(cls.id==="synthesis");                 // insight bursts converge inward
-  var strong = (step.type==="tool_call"||step.type==="tool_result");
-  if(strong) this.burst(zone, 1.0, collapse);
-  else if(step.type==="reasoning") this.burst(zone, 0.5, collapse);
-
-  // labeled, tool-coloured PULSE — names the tool/MCP being invoked
-  if(step.type==="tool_call")
-    this.spawnPulse(zone, step.content.name, toolColor(step.content.name), "call");
-  else if(step.type==="tool_result")
-    this.spawnPulse(zone, step.content.name||"result", toolColor(step.content.name), "result");
+  // ---- EMIT / RETURN call-and-response (the mind reaches OUT, the answer comes BACK) ----
+  if(step.type==="tool_call"){
+    this.spawnEmit(ev, si);                             // exhale the action word outward
+    this.spawnPulse(zone, step.content.name, st.pulse, "call");
+    this.burst(zone, 1.0, false);                       // face reaches out (outward ring)
+  }
+  else if(step.type==="tool_result"){
+    var r0=step.content;
+    var miss = (cls.id==="doubt") ||
+      (r0 && ((r0.results && r0.results.length===0) || (r0.result && MISS_RE.test(r0.result))));
+    this.spawnReturn(ev, si, !!miss);                  // inhale the answer home (flare on landing)
+    this.spawnPulse(zone, r0.name||"result", st.pulse, "return");   // contracting return ring
+    this.burst(zone, 0.8, true);                        // convergence
+  }
+  else if(step.type==="reasoning") this.spawnMurmur(ev, si);   // idle thought: a small outward breath
+  else if(step.type==="checkpoint") this.spawnEmit(ev, si, "STEERING");
 
   if(step.type==="reasoning"){
     this.setStatus("EXECUTING","");
@@ -798,38 +904,43 @@ Swarmcore.prototype.burst=function(zone,strong,collapse){
   if(this.bursts.length>8) this.bursts.shift();
 };
 
-// ============================================================ tool pulses
-// A pulse rings out from the active agent's zone carrying the TOOL/MCP name in a
-// tool-specific colour — so a viewer reads which tool fired and can tell
-// web_search (ice-blue) from knowledge_lookup (violet) at a glance.
+// ============================================================ action pulses
+// CALL rings expand OUT from the active zone (the mind acting); RETURN rings
+// contract IN toward the face (the answer arriving). Coloured by the active
+// state so the frame stays one hue; the flying WORD carries the tool identity.
 Swarmcore.prototype.spawnPulse=function(zone,label,color,kind){
   if(!this.pulses) this.pulses=[];
   var cx=(zone+0.5)/3*this.W;
-  var cy=(this.faceCY||this.H*0.42) + (this.jit?Math.sin(this.pulses.length*1.7)*this.H*0.06:0);
+  var cy=(this.faceCY||this.H*0.42) + (this.jit?Math.sin(this.pulses.length*1.7)*this.H*0.05:0);
   this.pulses.push({ x:cx, y:cy, age:0, life:1250,
-    color:color||TOOL_COLORS._default, label:String(label||"tool").toUpperCase(), kind:kind });
+    color:(color||[150,170,200]).slice(), label:String(label||"tool").toUpperCase(), kind:kind });
   if(this.pulses.length>6) this.pulses.shift();
 };
 
 Swarmcore.prototype.drawPulses=function(){
-  var ctx=this.ctx, ps=this.pulses; if(!ps||!ps.length) return;
-  var maxR=Math.min(this.W,this.H)*0.30;
+  var ctx=this.ctx, maxR=Math.min(this.W,this.H)*0.30;
+  // pending rim markers — a ~2Hz ring where an emitted word waits for its answer
+  var pc=this.pendingCall, tt=(this._now||0)/1000;
+  if(pc){ for(var z=0;z<3;z++){ var pm=pc[z]; if(!pm) continue;
+    var mc=pm.color||[150,170,200], pu=0.5+0.5*Math.sin(tt*12.5);
+    ctx.strokeStyle="rgba("+(mc[0]|0)+","+(mc[1]|0)+","+(mc[2]|0)+","+(0.24+0.34*pu).toFixed(3)+")";
+    ctx.lineWidth=1.4; ctx.beginPath(); ctx.arc(pm.x,pm.y,6+pu*6,0,6.2832); ctx.stroke();
+  }}
+  var ps=this.pulses; if(!ps||!ps.length) return;
   for(var i=0;i<ps.length;i++){
     var p=ps[i], a=p.age/p.life; if(a>=1) continue;
-    var c=p.color, fade=(1-a), R=c[0]|0,G=c[1]|0,B=c[2]|0;
-    var rad=8 + smooth(a)*maxR;
-    // expanding double ring
+    var c=p.color, fade=(1-a), R=c[0]|0,G=c[1]|0,B=c[2]|0, ret=(p.kind==="return");
+    var rad = ret ? (maxR - smooth(a)*(maxR-8)) : (8 + smooth(a)*maxR);   // contract vs expand
     ctx.strokeStyle="rgba("+R+","+G+","+B+","+(0.5*fade).toFixed(3)+")";
     ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(p.x,p.y,rad,0,6.2832); ctx.stroke();
-    ctx.strokeStyle="rgba("+R+","+G+","+B+","+(0.22*fade).toFixed(3)+")";
-    ctx.lineWidth=1; ctx.beginPath(); ctx.arc(p.x,p.y,rad*0.62,0,6.2832); ctx.stroke();
-    // label rises + fades
-    var sz=Math.max(11,this.fontPx*1.15);
+    ctx.strokeStyle="rgba("+R+","+G+","+B+","+(0.20*fade).toFixed(3)+")";
+    ctx.lineWidth=1; ctx.beginPath(); ctx.arc(p.x,p.y,rad*(ret?1.5:0.62),0,6.2832); ctx.stroke();
+    var sz=Math.max(11,this.fontPx*1.1);
     ctx.font="bold "+sz.toFixed(1)+"px "+FONT;
     ctx.textAlign="center"; ctx.textBaseline="middle";
-    var pre=(p.kind==="result")?"◀ ":(p.kind==="steer")?"✎ ":"⟐ ";
-    var ly=p.y - a*this.H*0.06;
-    ctx.fillStyle="rgba(3,8,7,"+(0.5*fade).toFixed(3)+")";      // dark plate for legibility
+    var pre=ret?"◀ ":(p.kind==="steer")?"✎ ":"⟐ ";
+    var ly=p.y + (ret? a*this.H*0.03 : -a*this.H*0.05);
+    ctx.fillStyle="rgba(4,6,12,"+(0.55*fade).toFixed(3)+")";      // dark plate for legibility
     ctx.fillText(pre+p.label, p.x+0.8, ly+0.8);
     ctx.fillStyle="rgba("+R+","+G+","+B+","+(0.96*fade).toFixed(3)+")";
     ctx.fillText(pre+p.label, p.x, ly);
@@ -890,41 +1001,81 @@ Swarmcore.prototype.pickTarget=function(zone,rnd,len){
   return {col:1+((this.cols-len-2)*rnd()|0), row:2+((this.rows-4)*rnd()|0)};
 };
 
-// spawn a step's keyword tokens on deterministic (seeded) flight paths
-Swarmcore.prototype.spawnTokens=function(ev, stepIndex){
-  var toks=this.pickTokens(ev.step); if(!toks.length) return;
+// EMIT — the mind EXHALES its action word OUTWARD to a rim anchor (tool_call).
+Swarmcore.prototype.spawnEmit=function(ev, stepIndex, forceWord){
+  var toks = forceWord ? [String(forceWord).toUpperCase()] : this.pickTokens(ev.step);
+  if(!toks.length) return;
   var zone=ev.ai%3, st=STATE[this.curStateId]||STATE.focus;
-  var scramble=(this.curStateId==="doubt");
   var live=0; for(var q=0;q<this.tokens.length;q++) if(!this.tokens[q].landed) live++;
-  var dur = ev.step.type==="checkpoint"?1400 : ev.step.type==="reasoning"?800:1000;
   for(var k=0;k<toks.length;k++){
     if(live>=INTAKE_MAX) break; live++;
     var rnd=lcg(stepIndex*131 + k*997 + 17);
-    var sp=this.pickSpawn(zone,rnd), tg=this.pickTarget(zone,rnd,toks[k].length);
+    var edge=this.pickSpawn(zone,rnd);                     // rim = DESTINATION now
+    var ox=(zone+0.5)/3*this.W, oy=this.faceCY + (rnd()-0.5)*this.H*0.06; // origin AT the face
     this.tokens.push({
-      text:toks[k], sx:sp.x, sy:sp.y,
-      cx:lerp(sp.x,this.faceCX,0.5)+(rnd()-0.5)*this.W*0.12,
-      cy:lerp(sp.y,this.faceCY,0.5)+(rnd()-0.5)*this.H*0.12,
-      tcol:tg.col, trow:tg.row, tx:tg.col*this.cellW, ty:tg.row*this.cellH,
-      age:0, life:dur, delay:k*120, zone:zone, landed:false, scramble:scramble,
-      core:st.core.slice(), glow:st.glow.slice()
+      text:toks[k], dir:"emit", murmur:false, dead:false, primary:(k===0), steer:!!forceWord,
+      sx:ox, sy:oy, tx:edge.x, ty:edge.y,
+      cx:lerp(ox,edge.x,0.5)+(rnd()-0.5)*this.W*0.10, cy:lerp(oy,edge.y,0.5)-this.H*0.05,
+      age:0, life:900, delay:k*120, zone:zone, landed:false,
+      color:st.pulse.slice(), glow:st.glow.slice()
     });
   }
 };
 
-// advance keyword tokens; on arrival they IMPRINT into the face (or scramble)
+// RETURN — the answer INHALES back from the pending rim anchor to a face cell,
+// imprints, and (on success) makes the whole face FLARE (tool_result).
+Swarmcore.prototype.spawnReturn=function(ev, stepIndex, dead){
+  var toks=this.pickTokens(ev.step); if(!toks.length) return;
+  var zone=ev.ai%3, st=STATE[this.curStateId]||STATE.focus, pend=this.pendingCall[zone];
+  var live=0; for(var q=0;q<this.tokens.length;q++) if(!this.tokens[q].landed) live++;
+  for(var k=0;k<toks.length;k++){
+    if(live>=INTAKE_MAX) break; live++;
+    var rnd=lcg(stepIndex*131 + k*997 + 17);
+    var edge = pend ? {x:pend.x,y:pend.y} : this.pickSpawn(zone,rnd);   // rim = ORIGIN now
+    var tg=this.pickTarget(zone,rnd,toks[k].length);                    // face cell = DEST
+    this.tokens.push({
+      text:toks[k], dir:"return", murmur:false, dead:!!dead, scramble:!!dead,
+      sx:edge.x, sy:edge.y, tcol:tg.col, trow:tg.row, tx:tg.col*this.cellW, ty:tg.row*this.cellH,
+      cx:lerp(edge.x,this.faceCX,0.5)+(rnd()-0.5)*this.W*0.06, cy:lerp(edge.y,this.faceCY,0.5),
+      age:0, life:820, delay:k*110, zone:zone, landed:false,
+      color:st.pulse.slice(), glow:st.glow.slice()
+    });
+  }
+  this.pendingCall[zone]=null;                              // the call has been answered
+};
+
+// MURMUR — a reasoning step: a small outward breath that fades before the rim.
+Swarmcore.prototype.spawnMurmur=function(ev, stepIndex){
+  var toks=this.pickTokens(ev.step); if(!toks.length) return;
+  var zone=ev.ai%3, st=STATE[this.curStateId]||STATE.focus, rnd=lcg(stepIndex*131 + 17);
+  var ox=(zone+0.5)/3*this.W, oy=this.faceCY + (rnd()-0.5)*this.H*0.05, edge=this.pickSpawn(zone,rnd);
+  var tx=lerp(ox,edge.x,0.40), ty=lerp(oy,edge.y,0.40);
+  this.tokens.push({ text:toks[0], dir:"emit", murmur:true, dead:false,
+    sx:ox, sy:oy, tx:tx, ty:ty, cx:lerp(ox,tx,0.5), cy:lerp(oy,ty,0.5)-this.H*0.03,
+    age:0, life:520, delay:0, zone:zone, landed:false, color:st.pulse.slice(), glow:st.glow.slice() });
+};
+
+// the face "pulses back" — a whole-portrait luminous inhale on a returned result
+Swarmcore.prototype.flareOn=function(mag){ this._flareT=this._now; this._flareMag=mag||1; };
+
+// advance tokens; emits hang at the rim (pending), returns IMPRINT + flare on arrival
 Swarmcore.prototype.ageTokens=function(dt){
   var keep=[];
   for(var i=0;i<this.tokens.length;i++){
     var tk=this.tokens[i];
     if(tk.delay>0){ tk.delay-=dt; keep.push(tk); continue; }
     tk.age+=dt;
-    if(!tk.landed && tk.age>=tk.life){ tk.landed=true; this.landToken(tk); }
-    if(!tk.landed || tk.age < tk.life+240) keep.push(tk);   // brief settle, then drop
+    if(!tk.landed && tk.age>=tk.life){
+      tk.landed=true;
+      if(tk.dir==="return"){ this.landToken(tk); if(!tk.dead) this.flareOn(0.9); }
+      else if(tk.dir==="emit" && !tk.murmur && !tk.steer){ this.pendingCall[tk.zone]={x:tk.tx,y:tk.ty,color:tk.color}; }
+    }
+    if(!tk.landed || tk.age < tk.life+200) keep.push(tk);
   }
   this.tokens=keep;
 };
 
+// imprint a RETURNED word into the word-face (or scramble it, on a dead-end)
 Swarmcore.prototype.landToken=function(tk){
   var col=tk.tcol, row=tk.trow, txt=tk.text, cols=this.cols;
   if(row>=0 && row<this.rows){
@@ -935,31 +1086,39 @@ Swarmcore.prototype.landToken=function(tk){
       else { this.ch[idx]=txt[q]; this.gboost[idx]=Math.min(0.8,(this.gboost[idx]||0)+0.5); }
     }
   }
-  if(!tk.scramble) this.burst(tk.zone, 0.6, true);   // small inward reward pulse
 };
 
-// draw the in-flight keyword tokens as an overlay (after the grid pass)
+// draw in-flight tokens: emit=ease-OUT exhale, return=ease-IN inhale, +launch tracer
 Swarmcore.prototype.drawTokens=function(){
   var ctx=this.ctx, toks=this.tokens; if(!toks.length) return;
   ctx.textBaseline="top";
   for(var i=0;i<toks.length;i++){
     var tk=toks[i]; if(tk.delay>0 || tk.landed) continue;
-    var pe=clamp(tk.age/tk.life,0,1); pe=pe*pe;          // ease-in (an inhale)
+    var a=clamp(tk.age/tk.life,0,1), ret=(tk.dir==="return");
+    var pe = ret ? a*a : 1-(1-a)*(1-a);                  // inhale vs exhale easing
     var mt=1-pe;
     var x=mt*mt*tk.sx + 2*mt*pe*tk.cx + pe*pe*tk.tx;
     var y=mt*mt*tk.sy + 2*mt*pe*tk.cy + pe*pe*tk.ty;
-    var size=lerp(this.fontPx*1.15, this.fontPx, pe);
+    var size=this.fontPx*(ret?lerp(1.18,1.0,pe):lerp(0.95,1.18,pe));
     ctx.font=size.toFixed(1)+"px "+FONT;
-    var R=lerp(tk.core[0],tk.glow[0],pe*0.8)|0,
-        G=lerp(tk.core[1],tk.glow[1],pe*0.8)|0,
-        B=lerp(tk.core[2],tk.glow[2],pe*0.8)|0;
+    var bri = ret ? (0.35+0.65*pe) : (1-0.45*pe);         // return brightens home; emit fades away
+    if(tk.dead) bri*=(a<0.62?1:Math.max(0,1-(a-0.62)/0.35))*0.7;   // dead-end scatters before centre
+    var mixW = ret ? pe*0.85 : 0.15;
+    var R=lerp(tk.color[0],tk.glow[0],mixW)|0,
+        G=lerp(tk.color[1],tk.glow[1],mixW)|0,
+        B=lerp(tk.color[2],tk.glow[2],mixW)|0;
     var txt=tk.text, kern=size*0.62;
     var ux=tk.tx-tk.sx, uy=tk.ty-tk.sy, ul=Math.sqrt(ux*ux+uy*uy)||1; ux/=ul; uy/=ul;
-    for(var e=2;e>=0;e--){                                // 2 trailing echoes + head
-      var a=(e===0)?0.92:[0,0.30,0.15][e]*(0.4+0.6*pe);
+    for(var e=2;e>=0;e--){                                // echoes trail behind the motion
+      var ea=(e===0)?0.95*bri:[0,0.28,0.14][e]*bri;
       var ex=x-ux*e*7, ey=y-uy*e*7;
-      ctx.fillStyle="rgba("+R+","+G+","+B+","+a.toFixed(3)+")";
+      ctx.fillStyle="rgba("+R+","+G+","+B+","+ea.toFixed(3)+")";
       for(var q=0;q<txt.length;q++) ctx.fillText(txt[q], ex+q*kern, ey);
+    }
+    if(!ret && !tk.murmur && tk.age<200){                 // launch tracer face→packet
+      var la=(1-tk.age/200)*0.28;
+      ctx.strokeStyle="rgba("+R+","+G+","+B+","+la.toFixed(3)+")";
+      ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(tk.sx,tk.sy); ctx.lineTo(x,y); ctx.stroke();
     }
   }
 };
@@ -1083,7 +1242,14 @@ Swarmcore.prototype.drawFace=function(now){
   var breathG=1 + this.bAmp*Math.sin(t*6.2832*this.bHz)*reveal  // arousal-driven breath
                 + (tremor>0.02 ? 0.015*Math.sin(t*13):0);       // alert: micro-tremor
   var synthBloom=0.12*Math.exp(-Math.pow((now-this._synthT)/300,2)); // insight pulse
+  var flareEnv=(this._flareMag||0)*Math.exp(-Math.pow((now-(this._flareT||-1e9))/300,2)); // success "inhale"
+  var auroraEnv=Math.exp(-Math.pow((now-(this._auroraT||-1e9))/650,2));  // resolve rainbow window
+  var auroraOn=auroraEnv>0.004;
   var lumScale=1-0.22*this.frust;                               // frustration darkens
+  // periodic BLINK (deterministic on replay clock) — dims the eye cells briefly
+  var isEye=this.isEye, blink=0;
+  if(isEye && this.freeze<0.5){ var bp=this.clock%5000; if(bp<150) blink=Math.sin(bp/150*Math.PI)*0.9; }
+  var blinkActive=blink>0.01;
   var maxR=this._burstMaxR||Math.max(cols,rows)*0.34;
 
   for(var r=0;r<rows;r++){
@@ -1109,26 +1275,39 @@ Swarmcore.prototype.drawFace=function(now){
       if(seekS>0.02){ var sdx=(c/cols)-hscan; g += 0.14*seekS*Math.exp(-sdx*sdx*90); }
       // synthesis insight bloom (face-weighted, brief)
       if(synthBloom>0.002) g += synthBloom*face;
+      // success FLARE — the whole portrait breathes IN when a result returns home
+      if(flareEnv>0.002) g += flareEnv*face*0.55;
       // keyword imprint glow (fades over ~700ms)
       g += gboost[i];
       // shimmer + scan line
       g += 0.05*Math.sin(t*2.4+this.jit[i]);
       var sd=ry-scan; g += 0.16*Math.exp(-sd*sd*90);
 
+      if(blinkActive && isEye[i]) g*=(1-blink);       // eyes close on a blink
       g=clamp(g*lumScale,0,1.35);
       var alpha=0.04+0.96*Math.pow(Math.min(g,1),powE);
       // colour: eased STATE core → its highlight; green resting is always home
+      // SYMMETRIC lerp: one factor for R,G,B so each hue blooms to ITS OWN
+      // tinted-white (never skews green); flare lifts the whole face toward glow.
       var hi=clamp((g-0.5)/0.5,0,1);
-      var R=lerp(core[0],glow[0],hi*0.85)|0,
-          G=lerp(core[1],glow[1],hi*0.45)|0,
-          B=lerp(core[2],glow[2],hi*0.85)|0;
+      var f=hi*0.82+flareEnv*0.20; if(f>1)f=1;
+      var R=lerp(core[0],glow[0],f)|0,
+          G=lerp(core[1],glow[1],f)|0,
+          B=lerp(core[2],glow[2],f)|0;
+      // RESOLVE finale — the whole run's palette sweeps across the face by column
+      if(auroraOn){
+        var ph=(c/cols)*5, i0=ph|0; if(i0>4)i0=4; var fr=ph-i0, A0=AURORA[i0], A1=AURORA[i0+1];
+        R=lerp(R, A0[0]+(A1[0]-A0[0])*fr, auroraEnv)|0;
+        G=lerp(G, A0[1]+(A1[1]-A0[1])*fr, auroraEnv)|0;
+        B=lerp(B, A0[2]+(A1[2]-A0[2])*fr, auroraEnv)|0;
+      }
       // DOUBT: ember furrow, strong in the shadows (brow/eyes), a hint even when lit
       if(doubtS>0){
         var w=doubtS*(face<0.55 ? (0.55-face)*2.0 : 0.14); if(w>1)w=1;
         R=lerp(R,EMBER[0],w*0.80)|0; G=lerp(G,EMBER[1],w*0.62)|0; B=lerp(B,EMBER[2],w*0.60)|0;
       }
       // DOUBT shudder: per-cell x jitter once the face has formed
-      var xoff=(doubtS>0.02 && reveal>=0.5) ? doubtS*0.55*cw*Math.sin(t*7+this.jit[i]) : 0;
+      var xoff=(doubtS>0.02 && reveal>=0.5) ? doubtS*0.38*cw*Math.sin(t*7+this.jit[i]) : 0;
       ctx.fillStyle="rgba("+R+","+G+","+B+","+alpha.toFixed(3)+")";
       ctx.fillText(this.ch[i], c*cw+xoff, yy);
     }

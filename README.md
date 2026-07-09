@@ -36,17 +36,18 @@ The visualization then replays that trace as a **portrait of the swarm's own
 mind** — a human face rendered entirely from a churning field of monospace
 characters. The face is not a picture pasted on top; it is *made of the run*.
 As the three agents work, the portrait **resolves out of the noise**, and the
-face **changes its emotional / cognitive state with the reasoning**: it cools to
-cyan as an agent reaches out for a tool, blooms mint as results land, furrows
-olive when it doubts its own data, flushes amber when a human reaches in to
-steer, and crystallizes near-white when it resolves. Keywords lifted straight
-from the trace (`REACTOR`, `NUSCALE`, `ORCHESTRATOR`, …) don't just sit there —
-they **fly in from the edges and imprint into the head**, so the mind visibly
-accretes its own vocabulary. A compact **affect console** (mood word,
-arousal/valence, an `F·S·Y·D·A·R` state bus, and a live EEG trace) lets you read
-the state as an instrument. It's a single looping image that says, in one
-glance: *this is what a collaborating group of AI agents — and the person
-guiding them — actually looks like, and feels like, from the inside.*
+face **travels the colour wheel with its reasoning** — resting **blue** when it
+thinks, **cyan** as it reaches for a tool, **green** as results land, **violet**
+when it doubts its own data, **red** when a human reaches in to steer, and
+**gold** as it resolves — one jewel-hue at a time. The mind **exhales its
+actions**: on each tool call the action word (`WEB_SEARCH`, `KNOWLEDGE_LOOKUP`, …)
+**fires outward** to the rim and waits there while the tool works, then on the
+result the answer **rushes back in**, imprints into the word-face, and the whole
+portrait **flares**. A compact **affect console** (mood word, arousal/valence, an
+`F·S·Y·D·A·R` state bus, and a live EEG trace) lets you read the state as an
+instrument. It's a single looping image that says, in one glance: *this is what a
+collaborating group of AI agents — and the person guiding them — actually looks
+like, and feels like, from the inside.*
 
 ## What this is (and what it isn't)
 
@@ -201,56 +202,67 @@ frontend can animate the replay at a natural pace.
   dark background stays random and shimmers; the face's words are held stable (the
   churn skips them) and accrete as keywords fly in.
 - **A face that expresses itself.** The mask is not static — six facial
-  expressions are pre-built (one per state) and the live face **eases between
-  them**, so it *emotes*: brows furrow and eyes narrow on **DOUBT**, eyes widen and
-  the mouth opens on **ALERT**, the mouth lifts into a faint smile on **SYNTH** /
-  **RSLV**. The head shape is shared across expressions, so the face emotes without
-  wobbling.
-- **Emotional / rational states.** Each replayed step is classified into one of
-  six affective states, and the whole face **eases toward that state's colour and
-  motion** (never a hard repaint — green is always home). Every state also carries
-  a distinct *motion* signature, so it reads even without colour:
+  expressions are pre-built (one per state, on a **3× supersampled** canvas so the
+  curves are smooth at glyph resolution) and the live face **eases between them**,
+  so it *emotes* with real anatomy: angled brow ridges, **deep-set eyes** with lids
+  that slide, pupils, and a specular catch-light, a curved mouth that smiles /
+  frowns / gasps, nasolabial folds, a cheek lift, and a slight head tilt — plus a
+  periodic **blink** and built-in asymmetry so it never reads as a dead mirror.
+  Brows knit and eyes narrow on **DOUBT**; brows fly up, eyes widen and the jaw
+  drops on **ALERT**; a Duchenne smile (mouth + cheeks + crinkled eyes) on **SYNTH**
+  / **RSLV**. The skull is shared across expressions, so it emotes without wobbling.
+- **Emotional / rational states — the full colour wheel.** Each replayed step is
+  classified into one of six affective states, and the whole face **eases toward
+  that state's colour and motion**. Because only *one* state is ever active, the
+  face is a single jewel-hue at any instant that **travels the wheel over the run**
+  — sequential colour, never a simultaneous rainbow. Harmony ("one material"): every
+  core sits in a tight saturation/value band and every highlight blooms to *its own*
+  tinted-white (a symmetric colour lerp), on a deliberately **hue-neutral graphite
+  frame** so the travelling hue is the only chroma on screen.
 
-  | State | Bus | Colour | Fires on | Motion |
+  | State | Bus | Hue | Fires on | Expression + motion |
   |---|---|---|---|---|
-  | **FOCUS** | `F` | acid-green `#39ff8a` | calm reasoning / planning | resting breath |
-  | **SEEK** | `S` | cyan `#7fffd4` | a `tool_call` (reaching out) | second L→R scan bar; keyword intake |
-  | **SYNTH** | `Y` | mint `#8fffc0` | results land / insight | bursts **collapse inward**; a bloom |
-  | **DOUBT** | `D` | muddy olive `#a88c40` | mismatch / data-quality flag | face darkens + **ember furrow** in the brow/eyes + a **shudder** |
-  | **ALERT** | `A` | amber `#ffbe3d` | the human steering checkpoint | full amber wash + sweep + tremor |
-  | **RSLV** | `R` | near-white `#beffdb` | final, confident output | **crystallizes**: churn drops, edges snap, holds |
+  | **FOCUS** | `F` | blue `#3884ff` (home) | calm reasoning / planning | level gaze, resting breath |
+  | **SEEK** | `S` | cyan `#2cd1f2` | a `tool_call` (reaching out) | brows arch, eyes widen + dart; L→R scan bar |
+  | **SYNTH** | `Y` | green `#34e896` | results land / insight | Duchenne smile; bursts **collapse inward** + bloom |
+  | **DOUBT** | `D` | violet `#9648f0` | mismatch / data-quality flag | knit brow, narrowed downcast eyes, **crimson furrow** + a **shudder** |
+  | **ALERT** | `A` | red `#fa4023` | the human steering checkpoint | brows up, eyes wide, jaw drops; tremor + sweep |
+  | **RSLV** | `R` | gold→white `#ffe373` | final, confident output | serene smile; **crystallizes** (churn drops, edges snap, holds) |
 
-- **Keyword intake.** On each step the salient keywords (tool names, argument
-  values, source titles) **spawn at the edge nearest the active agent and fly
-  into the head**, curving toward the face and **imprinting into the mask** on
-  arrival — coloured by the current state (teal = seeking, mint = insight, olive =
-  doubt…). Doubt keywords arrive dim and *scramble* instead of landing. Flights
-  are seeded (deterministic) so the loop records identically.
-- **Tool pulses.** Every `tool_call` / `tool_result` fires a labeled **pulse** —
-  an expanding ring carrying the tool/MCP name, **coloured by which tool it is**:
-  `web_search` rings out ice-blue, `knowledge_lookup` violet, a steering checkpoint
-  amber. So the pulse tells you *which tool*, while the face tells you *how it
-  feels* — two independent channels.
+- **Action out, answer back.** The mind **exhales its action**: on a `tool_call`
+  the tool/MCP word (`WEB_SEARCH`, `KNOWLEDGE_LOOKUP`, …) **fires outward** from the
+  face to a rim anchor — with an expanding ring and a launch tracer — and hangs
+  there, pulsing, while the tool "works out there." On the `tool_result` the answer
+  **inhales back**: the word rushes home to a face cell with a *contracting* ring,
+  **imprints into the word-face**, and the **whole portrait flares** to its own
+  tinted-white (success). A dead-end result (no sources) instead **scatters** the
+  word before it lands and the face flinches into doubt. Reasoning steps give a
+  small outward *murmur* so idle thought still breathes. All flights are seeded, so
+  the loop records identically.
 - **Affect console.** A compact instrument (top-right): the current mood word,
   numeric **AROUSAL / VALENCE**, a six-segment `F·S·Y·D·A·R` **state bus** whose
   prior segments keep a decaying afterglow (so you read the *trajectory* of
   states), and a **live EEG trace** whose amplitude tracks arousal and whose shape
   changes per state (calm wave → jagged spikes on ALERT → flat line on RSLV).
-- **Palette.** Near-black background (`#03060a`→`#060c08`) with a faint circuit
-  texture and vignette; the six state colours above, plus breach red `#ff3b3b` and
-  chrome node borders `#dfe9e6`.
+- **Palette.** A **hue-neutral graphite frame** (near-black `#04060c`→`#070b12`
+  background, cool-neutral circuit texture and vignette, graphite borders) so the
+  JS owns every saturated pixel — the face's single travelling jewel-hue is the
+  only chroma on screen. The six state hues are listed above.
 - **Replay.** As the trace plays in timestamp order, each step lights the active
-  agent's zone of the face and fires an expanding **burst** of bright characters
-  on every `tool_call` / `tool_result`. A slow scan-line and per-cell shimmer keep
-  the whole field alive.
-- **The checkpoint moment.** This is the **ALERT** state: the **entire code-face
-  flushes amber**, a **scanline sweep** crosses the canvas (`STATUS: AWAITING
-  INPUT`), and the side terminal prints the original-vs-edited instruction and
-  rationale with a typewriter effect. It holds ~2.5 s, then snaps back and resumes.
+  agent's zone of the face. A slow scan-line and per-cell shimmer keep the field
+  alive; the churn skips the face's word-cells so the vocabulary stays legible.
+- **The checkpoint moment.** This is the **ALERT** state: the **entire face flushes
+  red**, the eyes fly wide and the jaw drops, a **scanline sweep** crosses the canvas
+  (`STATUS: AWAITING INPUT`), and the side terminal prints the original-vs-edited
+  instruction and rationale with a typewriter effect. It holds ~2.5 s, then resumes.
+- **The finale (signature).** On `COMPLETE`, the whole run's palette **sweeps across
+  the face as a full-wheel rainbow** — the one instant every hue appears at once —
+  then collapses into the serene **gold** resolve as the face settles into a smile
+  and crystallizes, held for the loop's end-hold before it dissolves and repeats.
 - **HUD.** A persistent header with the task name, an elapsed-time clock, and a
   `STATUS` readout that changes colour with the live state
   (`EXECUTING` → `AWAITING INPUT` → `COMPLETE`).
-- **Terminal panel.** Fixed-width monospace, pale green/chrome text, a subtle
+- **Terminal panel.** Fixed-width monospace, cool-neutral text, a subtle
   scanline overlay, and a 1-frame chromatic-aberration glitch on state
   transitions.
 
