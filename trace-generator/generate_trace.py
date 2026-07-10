@@ -49,23 +49,16 @@ MODEL = "claude-opus-4-8"
 
 # The demo task is the default, but can be overridden without editing the file:
 #     export SWARMCORE_TASK="Summarize the 2025 state of solid-state batteries."
-# This is the first step toward the "less-manual input split": the ORCHESTRATOR
-# decomposes whatever task it is given into sub-agents dynamically.
-#
-# SCOPE CAVEAT (important): overriding the task currently only reparameterizes the
-# ORCHESTRATOR and the RESEARCH sub-agent (which uses live web_search, so it adapts
-# to any task). The ANALYZE / WRITE sub-agents query a small, hardcoded SMR
-# ``knowledge_lookup`` KB, and the simulated steering edits toward "smr_economics" —
-# both are SMR-specific. So a non-SMR task yields a real, task-relevant research
-# section but an intentionally SMR-flavored analyze/write section. Making the KB
-# task-aware (or routing analyze/write through web_search for custom tasks) is a
-# roadmap item; see README "Roadmap".
+# The WHOLE pipeline adapts: the ORCHESTRATOR decomposes the task dynamically,
+# RESEARCH uses live web_search, and the ANALYZE/WRITE ``knowledge_lookup`` KB
+# (plus the simulated-steering target) is distilled from the research agent's
+# real findings by ``build_knowledge_base`` — nothing task-specific is
+# hardcoded anymore. The static SMR KB below survives only as a fallback.
 _DEFAULT_TASK = (
     "Research and draft a 150-word brief on the current state of small modular "
     "nuclear reactors (SMRs)."
 )
 TASK = os.environ.get("SWARMCORE_TASK", _DEFAULT_TASK)
-TASK_IS_CUSTOM = TASK != _DEFAULT_TASK
 
 # Optional emotion-labeling pass (see label_emotions). On by default; set
 # SWARMCORE_LABEL_EMOTIONS=0 to skip it (the visualizer then classifies with its
@@ -116,10 +109,15 @@ def thinking_of(content) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Custom "knowledge_lookup" tool — a tiny deterministic knowledge base the
+# Custom "knowledge_lookup" tool — a small deterministic knowledge base the
 # analyze/write sub-agents can query. Executed locally (client-side tool).
+#
+# The KB is built DYNAMICALLY from the research sub-agent's real findings (see
+# build_knowledge_base), so the whole trace — not just research — adapts to any
+# SWARMCORE_TASK. The static SMR KB below is only the fallback if that
+# generation pass fails.
 # ---------------------------------------------------------------------------
-KNOWLEDGE_BASE = {
+FALLBACK_KNOWLEDGE_BASE = {
     "smr_capacity": (
         "Small modular reactors are defined by the IAEA as reactors with an "
         "electrical output up to 300 MWe per module, roughly one-third of a "
@@ -147,32 +145,134 @@ KNOWLEDGE_BASE = {
 }
 
 
-def run_knowledge_lookup(query_key: str) -> str:
-    return KNOWLEDGE_BASE.get(
+FALLBACK_STEERING = {
+    "key": "smr_economics",
+    "rationale": (
+        "prioritize economics/cost evidence over generic capacity facts for a "
+        "decision-useful brief"
+    ),
+}
+
+
+def run_knowledge_lookup(kb: dict, query_key: str) -> str:
+    return kb.get(
         query_key,
         f"No knowledge-base entry for '{query_key}'. "
-        f"Available keys: {', '.join(sorted(KNOWLEDGE_BASE))}.",
+        f"Available keys: {', '.join(sorted(kb))}.",
     )
 
 
-KNOWLEDGE_TOOL = {
-    "name": "knowledge_lookup",
-    "description": (
-        "Look up a curated fact about small modular reactors from an internal "
-        "knowledge base. Provide one of the available keys."
-    ),
-    "input_schema": {
+def make_knowledge_tool(kb: dict) -> dict:
+    return {
+        "name": "knowledge_lookup",
+        "description": (
+            "Look up a curated fact relevant to the current task from an "
+            "internal knowledge base. Provide one of the available keys."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query_key": {
+                    "type": "string",
+                    "enum": sorted(kb),
+                    "description": "Which knowledge-base entry to retrieve.",
+                }
+            },
+            "required": ["query_key"],
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Dynamic KB — distill the research sub-agent's real output into keyed facts.
+# ---------------------------------------------------------------------------
+def build_knowledge_base(research_summary: str) -> tuple[dict, dict]:
+    """Distill the research sub-agent's findings into a keyed KB + a steering
+    target, so analyze/write (and the simulated checkpoint) stay on-task for
+    ANY SWARMCORE_TASK. Returns (kb, steering); falls back to the static SMR
+    KB on any failure.
+    """
+    print("      -> distilling research findings into a task-specific KB...")
+    schema = {
         "type": "object",
         "properties": {
-            "query_key": {
+            "entries": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "description": "short snake_case topic key",
+                        },
+                        "fact": {
+                            "type": "string",
+                            "description": "1-3 sentence factual summary",
+                        },
+                    },
+                    "required": ["key", "fact"],
+                    "additionalProperties": False,
+                },
+            },
+            "steer_key": {
                 "type": "string",
-                "enum": sorted(KNOWLEDGE_BASE),
-                "description": "Which knowledge-base entry to retrieve.",
-            }
+                "description": (
+                    "the single entry a pragmatic human overseer would redirect "
+                    "the analyst toward for a decision-useful deliverable"
+                ),
+            },
+            "steer_rationale": {
+                "type": "string",
+                "description": "one short line, lowercase, no trailing period",
+            },
         },
-        "required": ["query_key"],
-    },
-}
+        "required": ["entries", "steer_key", "steer_rationale"],
+        "additionalProperties": False,
+    }
+    try:
+        resp = client.messages.create(
+            model=MODEL,
+            max_tokens=2000,
+            output_config={"format": {"type": "json_schema", "schema": schema}},
+            messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        "Distill these research findings into an internal "
+                        "knowledge base of 4-6 entries for downstream analyze/"
+                        "write agents working on the task below. Each entry: a "
+                        "short snake_case key and a dense, factual 1-3 sentence "
+                        "summary grounded ONLY in the findings. Also choose "
+                        "steer_key — the one entry a human overseer would "
+                        "redirect the analyst toward to make the deliverable "
+                        "decision-useful — plus a one-line steer_rationale.\n\n"
+                        f"TASK: {TASK}\n\nRESEARCH FINDINGS:\n"
+                        f"{research_summary[:5000]}"
+                    ),
+                }
+            ],
+        )
+        data = json.loads(text_of(resp.content))
+        kb = {
+            e["key"]: e["fact"]
+            for e in data["entries"]
+            if e.get("key") and e.get("fact")
+        }
+        if len(kb) < 3:
+            raise ValueError(f"only {len(kb)} usable KB entries")
+        steer_key = data.get("steer_key")
+        if steer_key not in kb:
+            steer_key = sorted(kb)[1 % len(kb)]
+        steering = {
+            "key": steer_key,
+            "rationale": data.get("steer_rationale")
+            or FALLBACK_STEERING["rationale"],
+        }
+        print(f"      -> KB keys: {', '.join(sorted(kb))} · steer→{steer_key}")
+        return kb, steering
+    except Exception as ex:  # non-fatal: SMR fallback keeps the pipeline alive
+        print(f"      !! dynamic KB failed ({ex}); using the static SMR fallback")
+        return dict(FALLBACK_KNOWLEDGE_BASE), dict(FALLBACK_STEERING)
 
 
 # ---------------------------------------------------------------------------
@@ -260,7 +360,13 @@ def run_orchestrator() -> dict:
 
     print(f"      -> plan captured ({len(planning_text)} chars) · "
           f"{len(subtasks)} subtasks: {roles}")
-    return {"planning_text": planning_text, "subtasks": subtasks}
+    # plan_text (the model's visible plan) rides along so the visualizer can
+    # give the orchestrator's thinking its own intro beat.
+    return {
+        "planning_text": planning_text,
+        "plan_text": plan_text,
+        "subtasks": subtasks,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -334,13 +440,30 @@ def run_research_subagent(subtask: dict) -> list[dict]:
                 }
             )
 
-    final = text_of(resp.content)
+    # Final = the concluding synthesis AFTER the last search result — NOT the
+    # leading intent (already its own step), so the intent isn't emitted twice.
+    final_parts: list[str] = []
+    seen_result = False
+    for b in resp.content:
+        if b.type == "web_search_tool_result":
+            seen_result = True
+            final_parts = []  # keep only the text following the LAST result
+        elif b.type == "text" and seen_result:
+            final_parts.append(b.text)
+    final = "".join(final_parts).strip() or text_of(resp.content)
     steps.append({"type": "reasoning", "content": final, "final": True})
     return steps
 
 
-def run_tool_subagent(subtask: dict, role: str, inject_checkpoint: bool) -> list[dict]:
-    """analyze / write sub-agent — real custom knowledge_lookup tool loop.
+def run_tool_subagent(
+    subtask: dict,
+    role: str,
+    inject_checkpoint: bool,
+    kb: dict,
+    steering: dict,
+) -> list[dict]:
+    """analyze / write sub-agent — real custom knowledge_lookup tool loop over
+    the task-specific KB.
 
     If ``inject_checkpoint`` is True, a fabricated-but-labeled human steering
     checkpoint is inserted AFTER the first tool call is proposed but BEFORE it
@@ -349,6 +472,7 @@ def run_tool_subagent(subtask: dict, role: str, inject_checkpoint: bool) -> list
     label = "3/4" if role == "analyze" else "4/4"
     print(f"[{label}] {role} sub-agent: knowledge_lookup...")
     steps: list[dict] = []
+    knowledge_tool = make_knowledge_tool(kb)
 
     system = (
         f"You are the {role.upper()} sub-agent in a multi-agent system. Before "
@@ -357,35 +481,45 @@ def run_tool_subagent(subtask: dict, role: str, inject_checkpoint: bool) -> list
     )
     if role == "write":
         system += (
-            " Your final output must be the finished ~150-word brief itself."
+            " Your final output must be the finished deliverable itself "
+            "(the actual text the task asks for), not a description of it."
         )
 
     messages = [{"role": "user", "content": subtask["instruction"]}]
     checkpoint_done = not inject_checkpoint
+    finalized = False
 
-    for _ in range(5):  # bounded tool loop
+    for _ in range(8):  # bounded tool loop (KB has up to 6 keys + compose turn)
+        # Force a tool call on the FIRST turn of the checkpoint agent, so the
+        # simulated-steering checkpoint always has a real tool_use to attach to
+        # (otherwise a model that answers directly would drop the ALERT moment).
+        if not checkpoint_done:
+            choice = {"type": "any", "disable_parallel_tool_use": True}
+        else:
+            choice = {"type": "auto", "disable_parallel_tool_use": True}
         resp = client.messages.create(
             model=MODEL,
             max_tokens=2500,
             system=system,
-            tools=[KNOWLEDGE_TOOL],
+            tools=[knowledge_tool],
             # one tool call per turn -> clean sequential steps for the replay
-            tool_choice={"type": "auto", "disable_parallel_tool_use": True},
+            tool_choice=choice,
             messages=messages,
         )
 
         intent = "".join(b.text for b in resp.content if b.type == "text").strip()
         tool_uses = [b for b in resp.content if b.type == "tool_use"]
 
-        if intent:
-            steps.append({"type": "reasoning", "content": intent})
-
         if resp.stop_reason != "tool_use" or not tool_uses:
-            # Final answer.
+            # Final answer — logged once, as final (not doubled as an intent).
             steps.append(
                 {"type": "reasoning", "content": text_of(resp.content), "final": True}
             )
+            finalized = True
             break
+
+        if intent:
+            steps.append({"type": "reasoning", "content": intent})
 
         # Handle every tool_use block (usually one, given disable_parallel).
         api_results = []
@@ -396,8 +530,9 @@ def run_tool_subagent(subtask: dict, role: str, inject_checkpoint: bool) -> list
             # --- SIMULATED STEERING (fabricated, explicitly labeled) ----------
             if not checkpoint_done:
                 edited_input = dict(original_input)
-                # Narrow the lookup toward economics — a plausible human redirect.
-                edited_input["query_key"] = "smr_economics"
+                # Redirect toward the KB entry a human overseer would flag —
+                # chosen dynamically by the KB-distillation pass.
+                edited_input["query_key"] = steering["key"]
                 steps.append(
                     {
                         "type": "checkpoint",
@@ -406,11 +541,7 @@ def run_tool_subagent(subtask: dict, role: str, inject_checkpoint: bool) -> list
                             "tool": "knowledge_lookup",
                             "original_input": original_input,
                             "edited_input": edited_input,
-                            "rationale": (
-                                "redirected: prioritize economics/cost evidence "
-                                "over generic capacity facts for a decision-useful "
-                                "brief"
-                            ),
+                            "rationale": "redirected: " + steering["rationale"],
                         },
                     }
                 )
@@ -423,7 +554,7 @@ def run_tool_subagent(subtask: dict, role: str, inject_checkpoint: bool) -> list
                     "content": {"name": "knowledge_lookup", "input": effective_input},
                 }
             )
-            result_text = run_knowledge_lookup(effective_input.get("query_key", ""))
+            result_text = run_knowledge_lookup(kb, effective_input.get("query_key", ""))
             steps.append(
                 {
                     "type": "tool_result",
@@ -442,6 +573,21 @@ def run_tool_subagent(subtask: dict, role: str, inject_checkpoint: bool) -> list
         # the model's subsequent output reflects the steered input.
         messages.append({"role": "assistant", "content": resp.content})
         messages.append({"role": "user", "content": api_results})
+
+    if not finalized:
+        # Loop budget exhausted while the model was still reaching for tools:
+        # force a closing answer so the trace always ends with a deliverable.
+        resp = client.messages.create(
+            model=MODEL,
+            max_tokens=2500,
+            system=system,
+            tools=[knowledge_tool],
+            tool_choice={"type": "none"},
+            messages=messages,
+        )
+        steps.append(
+            {"type": "reasoning", "content": text_of(resp.content), "final": True}
+        )
 
     return steps
 
@@ -559,23 +705,37 @@ def main() -> None:
         os.path.dirname(__file__), "..", "visualizer", "trace.json"
     )
 
-    if TASK_IS_CUSTOM:
-        print(
-            "  [note] SWARMCORE_TASK override active — the orchestrator + research "
-            "(web_search) adapt to it, but analyze/write use the SMR knowledge base "
-            "and the steering targets 'smr_economics' (see README 'Roadmap')."
-        )
-
     orchestrator = run_orchestrator()
     subtasks = orchestrator["subtasks"]
 
     subagents = []
+    kb, steering = None, None
     for st in subtasks:
         if st["role"] == "research":
             steps = run_research_subagent(st)
+            # distill the research agent's REAL findings into the KB that
+            # analyze/write will query — the whole trace adapts to the task
+            research_final = next(
+                (
+                    s["content"]
+                    for s in reversed(steps)
+                    if s["type"] == "reasoning" and s.get("final")
+                ),
+                "",
+            )
+            kb, steering = build_knowledge_base(research_final or TASK)
         else:
+            if kb is None:  # research produced nothing usable
+                kb, steering = (
+                    dict(FALLBACK_KNOWLEDGE_BASE),
+                    dict(FALLBACK_STEERING),
+                )
             steps = run_tool_subagent(
-                st, st["role"], inject_checkpoint=(st["role"] == "analyze")
+                st,
+                st["role"],
+                inject_checkpoint=(st["role"] == "analyze"),
+                kb=kb,
+                steering=steering,
             )
         subagents.append({"id": st["id"], "role": st["role"], "steps": steps})
 

@@ -1,24 +1,25 @@
 # SWARMCORE
 
-**A one-time-generated, replayable visualization of a multi-agent AI system's
-reasoning trace — a human face rendered entirely in living code, on a dark
-bio-mechanical / *System Shock* terminal.**
+**A replayable visualization of a multi-agent AI system's reasoning trace — a
+human face rendered entirely in living code, on a dark bio-mechanical /
+*System Shock* terminal.**
 
-A dense green field of monospace characters out of which a **face made of code**
+A dense field of monospace characters out of which a **face made of code**
 slowly resolves as three AI sub-agents do their work, alongside a live terminal
-readout printing the swarm's actual reasoning. On the human-steering checkpoint
-the whole face flushes amber. Built to be **screen-recorded** as a clean 15–25
-second loop for a portfolio.
+readout printing the swarm's actual reasoning. When the run pauses for human
+guidance, the face **rolls its head to the side** — a curious, listening tilt —
+and flushes red. During its heaviest thinking it slowly **rolls its neck**.
+Autoplays, loops, scrubs; drop any `trace.json` onto it to replay your own run.
 
 ![status: EXECUTING / AWAITING INPUT / COMPLETE](https://img.shields.io/badge/status-EXECUTING%20%E2%86%92%20AWAITING%20INPUT%20%E2%86%92%20COMPLETE-39ff8a?labelColor=03060a)
 
-<p align="center"><img src="docs/loop.gif" width="60%" alt="The face resolving out of the code as the agents run, flushing amber on the steering checkpoint"></p>
+<p align="center"><img src="docs/loop.gif" width="60%" alt="The face resolving out of the code as the agents run, tilting its head on the steering checkpoint"></p>
 
 <p align="center"><em>▶ the loop, resolving out of the code — <a href="docs/loop.mp4">MP4 version</a></em></p>
 
 ![SWARMCORE — a face made of code beside a live agent-telemetry readout](docs/hero.png)
 
-<p align="center"><img src="docs/face-green.png" width="49%" alt="The portrait resolved from the code field"> <img src="docs/face-amber.png" width="49%" alt="The face flushes amber on the human-steering checkpoint"></p>
+<p align="center"><img src="docs/face-synth.png" width="49%" alt="The portrait resolved from the code field, smiling in green synthesis"> <img src="docs/face-alert.png" width="49%" alt="The face rolls its head to the side and flushes red on the human-steering checkpoint"></p>
 
 ---
 
@@ -41,19 +42,21 @@ thinks, **cyan** as it reaches for a tool, **green** as results land, **violet**
 when it doubts its own data, **red** when a human reaches in to steer, and
 **gold** as it resolves — one jewel-hue at a time. The mind **exhales its
 actions**: on each tool call the action word (`WEB_SEARCH`, `KNOWLEDGE_LOOKUP`, …)
-**fires outward** to the rim and waits there while the tool works, then on the
-result the answer **rushes back in**, imprints into the word-face, and the whole
-portrait **flares**. A compact **affect console** (mood word, arousal/valence, an
-`F·S·Y·D·A·R` state bus, and a live EEG trace) lets you read the state as an
-instrument. It's a single looping image that says, in one glance: *this is what a
-collaborating group of AI agents — and the person guiding them — actually looks
-like, and feels like, from the inside.*
+**fires outward** and waits at the rim while the tool works, then on the result
+the answer **rushes back**, dissolves into the face boundary, imprints into the
+word-face, and the whole portrait **flares**. The head itself speaks: it
+**rolls to the side** when the swarm asks its human for guidance, and slowly
+**circles its neck** through the heaviest stretches of thought. It's a single
+looping image that says, in one glance: *this is what a collaborating group of
+AI agents — and the person guiding them — actually looks like, and feels like,
+from the inside.*
 
 ## What this is (and what it isn't)
 
-This is a **recorded artifact**, not a live interactive tool. It replays *one*
-pre-generated agent run. There is no task-input box and nothing for a site
-visitor to drive — you open it, it autoplays, it loops, you record it.
+This is a **replayable artifact**, not a live agent runner. It ships with one
+pre-generated run and autoplays it on a loop — but it is also a **player**: a
+timeline scrubber, keyboard transport, and drag-and-drop loading of any
+`trace.json` make it usable as a viewer for every run the generator produces.
 
 The agent trace it replays is **real Anthropic API output** — the orchestrator's
 extended-thinking plan, each sub-agent's stated intent, the actual tool-use
@@ -100,13 +103,21 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-It autoplays on load and **loops** (with a ~2 s hold on the `COMPLETE` state)
+It autoplays on load and **loops** (with a ~3 s hold on the `COMPLETE` state)
 so you never have to scrub.
 
 ### Playback controls
 
-A minimal floating bar: **Play/Pause**, **Restart**, and a **1× / 2×** speed
-toggle. Default is autoplay + loop.
+- **Floating bar** — Play/Pause · Restart · 1×/2× speed. It (and the cursor)
+  auto-hide after ~3 s idle, so recordings stay clean.
+- **Timeline scrubber** — a thin state-coloured bar along the bottom; click or
+  drag anywhere to jump. The terminal log and emotional state rebuild to match.
+- **Keyboard** — `Space` play/pause · `R` restart · `1`/`2` speed · `←`/`→`
+  seek ±5 s · `D` toggle the debug affect console.
+- **Drag & drop** — drop any generator-produced `trace.json` onto the page and
+  it replays that run on the spot.
+- **URL params** — `?speed=2` start at 2×, `?rec` hide every control (pure
+  canvas + terminal, for recording), `?debug` show the affect console.
 
 ---
 
@@ -127,28 +138,32 @@ That's it — reload the visualizer and it replays the new run.
 
 | Variable | Default | Effect |
 |---|---|---|
-| `SWARMCORE_TASK` | the SMR brief | Run the swarm on any task. The orchestrator + research (`web_search`) adapt to it; **note** the analyze/write `knowledge_lookup` KB and the steering are still SMR-specific (see Roadmap), so a non-SMR task gives a real research section but an SMR-flavored analyze/write section. |
+| `SWARMCORE_TASK` | the BCI brief | Run the swarm on **any task** — the whole pipeline adapts. The orchestrator decomposes it, research uses live `web_search`, and the analyze/write `knowledge_lookup` KB (plus the steering target) is distilled from the research agent's real findings. Nothing task-specific is hardcoded. |
 | `SWARMCORE_LABEL_EMOTIONS` | `1` | Set `0` to skip the emotion-labeling pass (the frontend heuristic still colours the trace). |
 | `SWARMCORE_EMOTION_MODEL` | `claude-haiku-4-5-20251001` | Which (cheap) model labels each step's emotional state. |
 
-What the generator does (fixed, disciplined scope — one demo task, exactly three
+What the generator does (disciplined scope — one task, exactly three
 sub-agents, one checkpoint):
 
 1. **Orchestrator call** — Claude Opus 4.8 with extended (adaptive) thinking
-   decomposes the fixed demo task *"Research and draft a 150-word brief on the
-   current state of small modular nuclear reactors"* into exactly three subtasks
+   decomposes the task (default: *"Research and draft a 150-word brief on the
+   current state of brain-computer interfaces"*) into exactly three subtasks
    (`research` / `analyze` / `write`) as structured JSON. The model's real
-   thinking/plan text is captured verbatim.
+   thinking/plan text is captured verbatim — the visualizer replays it as the
+   run's opening "planning" beat.
 2. **Three sub-agent calls with real tool use** —
    - `research` → real **`web_search`** server tool
-   - `analyze` and `write` → a custom **`knowledge_lookup`** tool (a small
-     client-side knowledge base) run in a real tool-use loop.
+   - the research findings are then **distilled into a task-specific knowledge
+     base** (4–6 keyed facts + a steering target) by a structured-output call
+   - `analyze` and `write` → a custom **`knowledge_lookup`** tool over that KB,
+     run in a real tool-use loop.
    For each we capture the stated intent, the real `tool_use` block, the tool
    result, and the final output.
 3. **One injected steering checkpoint** — inserted into the `analyze` sub-agent
    after its first tool call is proposed but before it "executes": the original
-   tool input, an edited version, and a rationale. Flagged `simulated_steering:
-   true`. Nothing else is fabricated.
+   tool input, an edited version redirecting to the KB entry a human overseer
+   would flag, and a one-line rationale. Flagged `simulated_steering: true`.
+   Nothing else is fabricated.
 
 Each step carries a synthetic, evenly-spaced `timestamp_ms` (~1.1 s apart) so the
 frontend can animate the replay at a natural pace.
@@ -195,64 +210,76 @@ frontend can animate the replay at a natural pace.
   of the noise** as the trace replays, brightening region by region as the three
   agents work, and holds fully-resolved on the `COMPLETE` state before the loop
   dissolves it back into code.
+- **A glowing volume, not scattered glyphs.** The whole head is filled with the
+  trace's real words in reading order, and each cell's **brightness follows a
+  procedural face-luminance mask** — bright cheeks/forehead/nose spell in full
+  light, the dark eye-sockets and mouth spell dim — so the face's own light-and-shadow
+  is what reads as features. A soft **glow underlay** (a low-res bloom of the face,
+  blitted up-scaled beneath the crisp glyphs) fuses those points of light into a
+  single luminous volume. Outside the head, the ambient field runs full strength;
+  **inside** it, the field is gated away so the eyes and mouth read as clean holes
+  instead of noise.
 - **A face made of real words.** The lit portrait is not random glyphs — the
-  trace's actual vocabulary (`MODULAR NUCLEAR REACTORS`, `MEGAWATTS`, `NUSCALE`,
-  `TERRAPOWER`, `ORCHESTRATOR`, `CONVECTION`, …) is **flowed through the bright mask
-  cells in reading order**, so the face literally spells the run's own content. The
-  dark background stays random and shimmers; the face's words are held stable (the
-  churn skips them) and accrete as keywords fly in.
-- **A face that expresses itself.** The mask is not static — six facial
-  expressions are pre-built (one per state, on a **3× supersampled** canvas so the
-  curves are smooth at glyph resolution) and the live face **eases between them**,
-  so it *emotes* with real anatomy: angled brow ridges, **deep-set eyes** with lids
-  that slide, pupils, and a specular catch-light, a curved mouth that smiles /
-  frowns / gasps, nasolabial folds, a cheek lift, and a slight head tilt — plus a
-  periodic **blink** and built-in asymmetry so it never reads as a dead mirror.
-  Brows knit and eyes narrow on **DOUBT**; brows fly up, eyes widen and the jaw
-  drops on **ALERT**; a Duchenne smile (mouth + cheeks + crinkled eyes) on **SYNTH**
-  / **RSLV**. The skull is shared across expressions, so it emotes without wobbling.
+  trace's actual vocabulary (`NEURALINK`, `SYNCHRON`, `PRECISION NEUROSCIENCE`,
+  `ORCHESTRATOR`, `RESTORATION`, `CLEARANCE`, …) is flowed through the head cells, so
+  the face literally spells the run's own content. The dark background stays random
+  and shimmers; the face's words are held stable (the churn skips them) and accrete
+  as keywords fly in.
+- **A face that expresses itself.** Six facial expressions are pre-built (one per
+  state, on a **4× supersampled** canvas so the curves are smooth at glyph
+  resolution) with **bold, downsample-surviving features** — strong brow bars,
+  set-in eye almonds, a curved mouth — and the live face **eases between them**. The
+  head has two motion channels beyond the expression: a **whole-head roll** about
+  the neck and a feature-level tilt. Brows knit and eyes narrow on **DOUBT** (plus a
+  **shudder**); on **ALERT** the head **rolls to the side** — a curious, listening
+  tilt, "what would you have me do?" — with raised brows, wide eyes and parted lips;
+  a Duchenne smile (mouth + cheeks) on **SYNTH** / **RSLV**.
+- **The head thinks with its neck.** Through the heaviest stretches of reasoning —
+  the orchestrator's opening plan, a long compose step — the head slowly **rolls its
+  neck** in a full, easing circle (eight keyframe masks stepped through in time),
+  the way someone loosens up over a hard problem. It cancels the instant an outward
+  state (a tool call, an alert) takes over.
 - **Emotional / rational states — the full colour wheel.** Each replayed step is
   classified into one of six affective states, and the whole face **eases toward
   that state's colour and motion**. Because only *one* state is ever active, the
   face is a single jewel-hue at any instant that **travels the wheel over the run**
-  — sequential colour, never a simultaneous rainbow. Harmony ("one material"): every
-  core sits in a tight saturation/value band and every highlight blooms to *its own*
-  tinted-white (a symmetric colour lerp), on a deliberately **hue-neutral graphite
-  frame** so the travelling hue is the only chroma on screen.
+  — sequential colour, never a simultaneous rainbow. Every highlight blooms to *its
+  own* tinted-white, on a deliberately **hue-neutral graphite frame** so the
+  travelling hue is the only chroma on screen.
 
   | State | Bus | Hue | Fires on | Expression + motion |
   |---|---|---|---|---|
-  | **FOCUS** | `F` | blue `#3884ff` (home) | calm reasoning / planning | level gaze, resting breath |
-  | **SEEK** | `S` | cyan `#2cd1f2` | a `tool_call` (reaching out) | brows arch, eyes widen + dart; L→R scan bar |
-  | **SYNTH** | `Y` | green `#34e896` | results land / insight | Duchenne smile; bursts **collapse inward** + bloom |
+  | **FOCUS** | `F` | blue `#3884ff` (home) | calm reasoning / planning | level gaze, resting breath; neck-roll on deep thought |
+  | **SEEK** | `S` | cyan `#2cd1f2` | a `tool_call` (reaching out) | brows arch, eyes widen + dart |
+  | **SYNTH** | `Y` | green `#34e896` | results land / insight | Duchenne smile; a soft inward **bloom** |
   | **DOUBT** | `D` | violet `#9648f0` | mismatch / data-quality flag | knit brow, narrowed downcast eyes, **crimson furrow** + a **shudder** |
-  | **ALERT** | `A` | red `#fa4023` | the human steering checkpoint | brows up, eyes wide, jaw drops; tremor + sweep |
+  | **ALERT** | `A` | red `#fa4023` | the human steering checkpoint | **head rolls to the side**, brows up, eyes wide, lips part |
   | **RSLV** | `R` | gold→white `#ffe373` | final, confident output | serene smile; **crystallizes** (churn drops, edges snap, holds) |
 
 - **Action out, answer back.** The mind **exhales its action**: on a `tool_call`
-  the tool/MCP word (`WEB_SEARCH`, `KNOWLEDGE_LOOKUP`, …) **fires outward** from the
-  face to a rim anchor — with an expanding ring and a launch tracer — and hangs
-  there, pulsing, while the tool "works out there." On the `tool_result` the answer
-  **inhales back**: the word rushes home to a face cell with a *contracting* ring,
-  **imprints into the word-face**, and the **whole portrait flares** to its own
-  tinted-white (success). A dead-end result (no sources) instead **scatters** the
+  the tool word (`WEB_SEARCH`, `KNOWLEDGE_LOOKUP`, …) **fires outward** from the face
+  and hangs at the rim while the tool "works out there" — but the word only
+  materialises once it has cleared the head, so it never slides across the portrait.
+  On the `tool_result` the answer **rushes back**, **dissolves into the face
+  boundary** (the imprint glow + a whole-portrait **flare** take over from there),
+  and imprints its word into the face. A dead-end result instead **scatters** the
   word before it lands and the face flinches into doubt. Reasoning steps give a
-  small outward *murmur* so idle thought still breathes. All flights are seeded, so
-  the loop records identically.
-- **Affect console.** A compact instrument (top-right): the current mood word,
-  numeric **AROUSAL / VALENCE**, a six-segment `F·S·Y·D·A·R` **state bus** whose
-  prior segments keep a decaying afterglow (so you read the *trajectory* of
-  states), and a **live EEG trace** whose amplitude tracks arousal and whose shape
-  changes per state (calm wave → jagged spikes on ALERT → flat line on RSLV).
+  small outward *murmur*. All flights are seeded, so the loop records identically.
+  (There are no ring/scanline pulses — the flying word and its imprint are the only
+  action signal, so nothing sweeps across the code.)
 - **Palette.** A **hue-neutral graphite frame** (near-black `#04060c`→`#070b12`
   background, cool-neutral circuit texture and vignette, graphite borders) so the
   JS owns every saturated pixel — the face's single travelling jewel-hue is the
   only chroma on screen. The six state hues are listed above.
+- **Debug affect console.** Hidden from viewers by default (it is an instrument for
+  screenshot debugging, not part of the piece). Toggle it with the `D` key or
+  `?debug` in the URL: mood word, numeric **AROUSAL / VALENCE**, a six-segment
+  `F·S·Y·D·A·R` **state bus** with decaying afterglow, and a **live EEG trace**.
 - **Replay.** As the trace plays in timestamp order, each step lights the active
-  agent's zone of the face. A slow scan-line and per-cell shimmer keep the field
-  alive; the churn skips the face's word-cells so the vocabulary stays legible.
-- **The checkpoint moment.** This is the **ALERT** state: the **entire face flushes
-  red**, the eyes fly wide and the jaw drops, a **scanline sweep** crosses the canvas
+  agent's zone of the face. A gentle per-cell shimmer keeps the field alive; the
+  churn skips the face's word-cells so the vocabulary stays legible.
+- **The checkpoint moment.** This is the **ALERT** state: the **head rolls to the
+  side** and the whole face **flushes red**, a **scanline sweep** crosses the canvas
   (`STATUS: AWAITING INPUT`), and the side terminal prints the original-vs-edited
   instruction and rationale with a typewriter effect. It holds ~2.5 s, then resumes.
 - **The finale (signature).** On `COMPLETE`, the whole run's palette **sweeps across
@@ -267,19 +294,24 @@ frontend can animate the replay at a natural pace.
   transitions.
 
 The portrait is drawn on a **`<canvas>`** (procedural face-luminance mask →
-per-character brightness), with SVG-free CSS effects for the sweep and glitch. No
-frameworks, no external requests, no fonts fetched — it works fully offline.
+per-character brightness + a blitted glow underlay), with SVG-free CSS effects for
+the sweep and glitch. No frameworks, no external requests, no fonts fetched — it
+works fully offline.
 
 ---
 
 ## Recording a clip
 
-1. Open the visualizer (static server recommended) and let it start looping.
+The committed `docs/loop.mp4` / `docs/loop.gif` were captured **deterministically**
+via headless Chrome driven on a virtualized clock (every frame byte-stable), so a
+regenerated trace can be re-recorded identically. To capture by hand instead:
+
+1. Open the visualizer with **`?rec`** (hides every control — pure canvas +
+   terminal) and let it loop. Add `&speed=2` for a punchier ~27 s loop.
 2. Record the canvas with **QuickTime** ( *File → New Screen Recording* ), a
    browser extension, or OBS.
-3. Crop to the canvas area. A single loop is ~15–25 s. Good export sizes:
-   **1080×1080** (square, social) or **1920×1080** (landscape).
-4. For a punchier clip, hit **2×**; for a calmer one, leave it at **1×**.
+3. Crop to the canvas area. Good export sizes: **1080×1080** (square, social) or
+   **1920×1080** (landscape).
 
 ---
 
@@ -288,12 +320,12 @@ frameworks, no external requests, no fonts fetched — it works fully offline.
 Today the trace is generated once (fixed scope) and replayed. The direction is to
 make the whole thing **drive off arbitrary input with less hand-authoring**:
 
-1. **Arbitrary tasks (partial).** `SWARMCORE_TASK` already lets the orchestrator
-   decompose any task into sub-agents dynamically — the "split the input" step is
-   the model's job, not a hardcoded list. The research agent (live `web_search`)
-   adapts fully; the next step is making the analyze/write `knowledge_lookup` KB
-   task-aware (or routing them through `web_search` for custom tasks) so the whole
-   trace, not just research, is task-relevant.
+1. **Arbitrary tasks (shipped).** `SWARMCORE_TASK` runs the swarm on any task and
+   the *whole* trace adapts: the orchestrator decomposes the task, research uses
+   live `web_search`, and the analyze/write `knowledge_lookup` KB (plus the steering
+   target) is **distilled from the research agent's real findings** at build time —
+   no task-specific facts are hardcoded. The next step is closing the loop with the
+   live streaming path below.
 2. **Model-labeled affect (shipped).** The emotion-labeling pass (`step.emotion`)
    is the seam where a model, not a hand-tuned heuristic, decides state. It is
    enum-constrained to the six frontend states, conf-gated, and back-compat.
