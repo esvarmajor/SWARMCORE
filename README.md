@@ -210,15 +210,26 @@ frontend can animate the replay at a natural pace.
   of the noise** as the trace replays, brightening region by region as the three
   agents work, and holds fully-resolved on the `COMPLETE` state before the loop
   dissolves it back into code.
-- **A glowing volume, not scattered glyphs.** The whole head is filled with the
-  trace's real words in reading order, and each cell's **brightness follows a
-  procedural face-luminance mask** — bright cheeks/forehead/nose spell in full
-  light, the dark eye-sockets and mouth spell dim — so the face's own light-and-shadow
-  is what reads as features. A soft **glow underlay** (a low-res bloom of the face,
-  blitted up-scaled beneath the crisp glyphs) fuses those points of light into a
-  single luminous volume. Outside the head, the ambient field runs full strength;
-  **inside** it, the field is gated away so the eyes and mouth read as clean holes
-  instead of noise.
+- **Crisp glyphs, sketched portrait.** The whole head is filled with the trace's
+  real words in reading order, and each cell's **brightness follows a drawn
+  portrait mask** — a shaded head silhouette with path-drawn features (slender
+  arched brows, winged almond eyes with a luminous iris + glint, full sculpted
+  lips) painted at 4×
+  supersample and read back per cell. Bright cheekbones and forehead spell in full
+  light, the dark liner and mouth line spell dim, so the portrait's own
+  light-and-shadow is what reads as features — **every character stays readable**;
+  there is no blur or bloom layered over the text. Tone is carried the way a
+  typographic print carries it: by **coverage** — three glyph weight buckets
+  (heavier + larger in the highlights) plus a crisp cell-aligned phosphor backfill
+  behind the lit face only. Outside the head the ambient field runs full strength;
+  **inside** it, the field is gated away so the eyes and mouth read clean.
+- **The machine has a face — hers.** The portrait is a woman, SHODAN-adjacent
+  in spirit but human in structure: long centre-parted hair falling past the
+  jaw in dark waves, a soft oval face with light on the cheekbones, slender
+  arched brows, winged dark-lashed eyes with luminous irises, full sculpted
+  lips, and a faint etched **circuit trace** down one cheek. The resting
+  expression is a calm, level gaze — composed, never saccharine; joy arrives
+  as a knowing smile.
 - **A face made of real words.** The lit portrait is not random glyphs — the
   trace's actual vocabulary (`NEURALINK`, `SYNCHRON`, `PRECISION NEUROSCIENCE`,
   `ORCHESTRATOR`, `RESTORATION`, `CLEARANCE`, …) is flowed through the head cells, so
@@ -227,13 +238,12 @@ frontend can animate the replay at a natural pace.
   as keywords fly in.
 - **A face that expresses itself.** Six facial expressions are pre-built (one per
   state, on a **4× supersampled** canvas so the curves are smooth at glyph
-  resolution) with **bold, downsample-surviving features** — strong brow bars,
-  set-in eye almonds, a curved mouth — and the live face **eases between them**. The
-  head has two motion channels beyond the expression: a **whole-head roll** about
-  the neck and a feature-level tilt. Brows knit and eyes narrow on **DOUBT** (plus a
-  **shudder**); on **ALERT** the head **rolls to the side** — a curious, listening
-  tilt, "what would you have me do?" — with raised brows, wide eyes and parted lips;
-  a Duchenne smile (mouth + cheeks) on **SYNTH** / **RSLV**.
+  resolution) and the live face **eases between them**. The head has two motion
+  channels beyond the expression: a **whole-head roll** about the neck and a
+  feature-level tilt. Brows knit and the eyes narrow to a glare on **DOUBT** (plus
+  a small **shudder**); on **ALERT** the head **tilts to the side** — imperious,
+  listening, "what would you have me do?" — with arched brows, wide eyes and
+  barely-parted lips; a lidded **smirk** on **SYNTH** / **RSLV**.
 - **The head thinks with its neck.** Through the heaviest stretches of reasoning —
   the orchestrator's opening plan, a long compose step — the head slowly **rolls its
   neck** in a full, easing circle (eight keyframe masks stepped through in time),
@@ -251,9 +261,9 @@ frontend can animate the replay at a natural pace.
   |---|---|---|---|---|
   | **FOCUS** | `F` | blue `#3884ff` (home) | calm reasoning / planning | level gaze, resting breath; neck-roll on deep thought |
   | **SEEK** | `S` | cyan `#2cd1f2` | a `tool_call` (reaching out) | brows arch, eyes widen + dart |
-  | **SYNTH** | `Y` | green `#34e896` | results land / insight | Duchenne smile; a soft inward **bloom** |
+  | **SYNTH** | `Y` | green `#34e896` | results land / insight | lidded smirk; a brief inward **flare** |
   | **DOUBT** | `D` | violet `#9648f0` | mismatch / data-quality flag | knit brow, narrowed downcast eyes, **crimson furrow** + a **shudder** |
-  | **ALERT** | `A` | red `#fa4023` | the human steering checkpoint | **head rolls to the side**, brows up, eyes wide, lips part |
+  | **ALERT** | `A` | red `#fa4023` | the human steering checkpoint | **head tilts to the side**, brows arch, eyes wide, lips barely part |
   | **RSLV** | `R` | gold→white `#ffe373` | final, confident output | serene smile; **crystallizes** (churn drops, edges snap, holds) |
 
 - **Action out, answer back.** The mind **exhales its action**: on a `tool_call`
@@ -293,8 +303,9 @@ frontend can animate the replay at a natural pace.
   scanline overlay, and a 1-frame chromatic-aberration glitch on state
   transitions.
 
-The portrait is drawn on a **`<canvas>`** (procedural face-luminance mask →
-per-character brightness + a blitted glow underlay), with SVG-free CSS effects for
+The portrait is drawn on a **`<canvas>`** (a path-drawn, 4×-supersampled portrait
+mask → per-character brightness, weight-bucketed glyphs and a cell-aligned
+phosphor backfill — no blur layers over the text), with SVG-free CSS effects for
 the sweep and glitch. No frameworks, no external requests, no fonts fetched — it
 works fully offline.
 

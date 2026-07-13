@@ -348,21 +348,22 @@ var EMBER=[150,30,72];   // doubt: shadow-only DEEP-CRIMSON furrow (harmonizes w
 //  headRoll: WHOLE-HEAD rotation about the neck (cranium + features together) —
 //    the "curious tilt" when the swarm asks its human for guidance
 //  asym: constant unevenness so the face is never a dead mirror
+// Poised by default: the resting face is a calm, level gaze — composed, not
+// hostile; joy is a soft knowing smile; doubt narrows; alert is attentive.
 var EXPR={
-  focus:     {browY: 0.000, browTilt:-0.03, browThick:0.6, furrow:0.0, lidUpper:0.10, lidLower:0.05, eyeOpen:1.00, eyeW:1.00, gazeX: 0.00, gazeY: 0.00, cheekRaise:0.10, jawDrop:0.00, mouthCurve: 0.010, mouthOpen:0.90, mouthWidth:1.00, headTilt:-0.010, headTurn: 0.00, headRoll:0.00, asym:0.03},
-  seek:      {browY:-0.020, browTilt: 0.12, browThick:0.5, furrow:0.0, lidUpper:0.03, lidLower:0.00, eyeOpen:1.15, eyeW:1.06, gazeX: 0.45, gazeY:-0.05, cheekRaise:0.12, jawDrop:0.05, mouthCurve: 0.020, mouthOpen:1.00, mouthWidth:1.00, headTilt: 0.040, headTurn: 0.03, headRoll:0.00, asym:0.03},
-  synthesis: {browY:-0.010, browTilt: 0.06, browThick:0.5, furrow:0.0, lidUpper:0.12, lidLower:0.35, eyeOpen:0.92, eyeW:1.00, gazeX: 0.00, gazeY:-0.04, cheekRaise:0.60, jawDrop:0.02, mouthCurve: 0.078, mouthOpen:1.05, mouthWidth:1.06, headTilt:-0.020, headTurn: 0.00, headRoll:0.00, asym:0.05},
-  doubt:     {browY: 0.015, browTilt:-0.32, browThick:0.7, furrow:1.0, lidUpper:0.32, lidLower:0.22, eyeOpen:0.62, eyeW:0.94, gazeX:-0.35, gazeY: 0.12, cheekRaise:0.00, jawDrop:0.00, mouthCurve:-0.045, mouthOpen:0.80, mouthWidth:0.94, headTilt:-0.050, headTurn:-0.02, headRoll:0.00, asym:0.09},
-  // ALERT = the human-steering checkpoint: the head ROLLS to the side (a
-  // curious, listening tilt — "what would you have me do?") with raised brows
-  // and wide, attentive eyes; parted lips instead of the old shock-gasp.
-  alert:     {browY:-0.030, browTilt: 0.14, browThick:0.4, furrow:0.15,lidUpper:0.00, lidLower:0.00, eyeOpen:1.38, eyeW:1.16, gazeX: 0.18, gazeY:-0.06, cheekRaise:0.08, jawDrop:0.20, mouthCurve: 0.012, mouthOpen:1.60, mouthWidth:0.94, headTilt: 0.020, headTurn: 0.02, headRoll:0.16, asym:0.03},
-  resolve:   {browY:-0.006, browTilt: 0.00, browThick:0.4, furrow:0.0, lidUpper:0.30, lidLower:0.20, eyeOpen:0.95, eyeW:1.00, gazeX: 0.00, gazeY:-0.06, cheekRaise:0.45, jawDrop:0.00, mouthCurve: 0.072, mouthOpen:1.05, mouthWidth:1.04, headTilt: 0.000, headTurn: 0.00, headRoll:0.00, asym:0.02}
+  focus:     {browY: 0.002, browTilt:-0.04, browThick:0.40,furrow:0.0, lidUpper:0.14, lidLower:0.10, eyeOpen:1.00, eyeW:1.00, gazeX: 0.00, gazeY: 0.00, cheekRaise:0.06, jawDrop:0.00, mouthCurve: 0.004, mouthOpen:0.88, mouthWidth:1.00, headTilt:-0.008, headTurn: 0.00, headRoll:0.00, asym:0.04},
+  seek:      {browY:-0.010, browTilt: 0.08, browThick:0.38,furrow:0.0, lidUpper:0.10, lidLower:0.06, eyeOpen:1.06, eyeW:1.04, gazeX: 0.50, gazeY:-0.04, cheekRaise:0.08, jawDrop:0.02, mouthCurve: 0.012, mouthOpen:0.95, mouthWidth:0.99, headTilt: 0.028, headTurn: 0.025,headRoll:0.00, asym:0.04},
+  synthesis: {browY:-0.006, browTilt: 0.07, browThick:0.38,furrow:0.0, lidUpper:0.14, lidLower:0.34, eyeOpen:0.88, eyeW:1.00, gazeX: 0.05, gazeY:-0.03, cheekRaise:0.35, jawDrop:0.00, mouthCurve: 0.034, mouthOpen:0.95, mouthWidth:1.03, headTilt:-0.015, headTurn: 0.00, headRoll:0.00, asym:0.10},
+  doubt:     {browY: 0.012, browTilt:-0.28, browThick:0.55,furrow:1.0, lidUpper:0.32, lidLower:0.24, eyeOpen:0.66, eyeW:0.96, gazeX:-0.34, gazeY: 0.08, cheekRaise:0.00, jawDrop:0.00, mouthCurve:-0.008, mouthOpen:0.78, mouthWidth:0.94, headTilt:-0.040, headTurn:-0.02, headRoll:0.00, asym:0.09},
+  // ALERT = the human-steering checkpoint: a curious head-tilt — wide
+  // attentive eyes, arched brows, lips barely parted. Listening, not gasping.
+  alert:     {browY:-0.022, browTilt: 0.13, browThick:0.34,furrow:0.10, lidUpper:0.02, lidLower:0.02, eyeOpen:1.24, eyeW:1.10, gazeX: 0.15, gazeY:-0.05, cheekRaise:0.05, jawDrop:0.08, mouthCurve: 0.006, mouthOpen:1.24, mouthWidth:0.96, headTilt: 0.015, headTurn: 0.02, headRoll:0.10, asym:0.04},
+  resolve:   {browY:-0.002, browTilt: 0.02, browThick:0.34,furrow:0.0, lidUpper:0.30, lidLower:0.26, eyeOpen:0.90, eyeW:1.00, gazeX: 0.00, gazeY:-0.04, cheekRaise:0.30, jawDrop:0.00, mouthCurve: 0.038, mouthOpen:0.95, mouthWidth:1.02, headTilt: 0.000, headTurn: 0.00, headRoll:0.00, asym:0.08}
 };
 // NECK-ROLL keyframes for INTENSIVE THINKING — the head slowly circles about
 // the neck (roll + a slight turn), like someone loosening up over a hard
 // problem. Built from the focus expression at setup; stepped through in tick().
-var ROLL_KEYS=8, ROLL_AMP=0.13, ROLL_MS=2200;
+var ROLL_KEYS=12, ROLL_AMP=0.08, ROLL_MS=2200;
 function rollExpr(p){                        // p in [0,1) around the cycle
   var e={}, base=EXPR.focus;
   for(var k in base) e[k]=base[k];
@@ -528,11 +529,13 @@ Swarmcore.prototype.setupCanvas=function(){
   c.width=Math.round(this.W*dpr); c.height=Math.round(this.H*dpr);
   this.ctx.setTransform(dpr,0,0,dpr,0,0);
 
-  this.cellW=Math.max(9, this.W/78);
-  this.cellH=this.cellW*1.16;
+  // dense grid — the portrait is carried entirely by per-character brightness,
+  // so it needs enough glyphs across the face to hold real tonal detail
+  this.cellW=Math.max(7, this.W/104);
+  this.cellH=this.cellW*1.08;                 // tight vertical packing = tonal coverage
   this.cols=Math.ceil(this.W/this.cellW);
   this.rows=Math.ceil(this.H/this.cellH);
-  this.fontPx=this.cellH*0.94;
+  this.fontPx=this.cellH*1.00;
   this._burstMaxR=Math.max(this.cols,this.rows)*0.34;
 
   this.buildMasks();
@@ -550,9 +553,13 @@ Swarmcore.prototype.setupEEG=function(){
 };
 
 // Paint a head/face on a small canvas for one EXPRESSION and read luminance per
-// grid cell. Geometry is in PIXEL space (fractions of stage height) so the face
-// keeps correct anatomy at any aspect ratio. Head shape is fixed; the dark
-// features (brow/eyes/mouth/furrow) move per `expr`, so the face emotes.
+// grid cell. The head is a SKETCHED PORTRAIT of a woman, not a blob-field: a
+// soft-oval silhouette framed by long dark hair, with smooth tonal shading and
+// drawn features (arched brows, winged almond eyes with iris + glint, full
+// sculpted lips) softened only slightly — so the downsample yields a portrait
+// whose characters stay crisp and readable.
+// All geometry is in face-fraction coords via a canvas transform: fx∈[-.5,.5]
+// across the head, fy∈[0..1] crown→shoulders; anatomy holds at any aspect.
 Swarmcore.prototype.buildMaskFor=function(expr){
   var cols=this.cols, rows=this.rows, cw=this.cellW, chh=this.cellH;
   var SS=4, MW=cols*SS, MH=rows*SS;              // 4x SUPERSAMPLE → smooth curves
@@ -560,139 +567,269 @@ Swarmcore.prototype.buildMaskFor=function(expr){
   var x=m.getContext("2d");
   x.fillStyle="#000"; x.fillRect(0,0,MW,MH);
 
-  var Hp=this.H, cxp=this.W*0.5;                 // pixel space
-  function blob(color){
-    return function(pxX,pxY,rxPx,ryPx,a){
-      var X=pxX/cw*SS, Y=pxY/chh*SS, rx=Math.max(0.6,rxPx/cw*SS), ry=Math.max(0.6,ryPx/chh*SS);
-      x.save(); x.translate(X,Y); x.scale(1, ry/rx);
-      var g=x.createRadialGradient(0,0,0,0,0,rx);
-      g.addColorStop(0,"rgba("+color+","+a+")");
-      g.addColorStop(1,"rgba("+color+",0)");
-      x.fillStyle=g; x.beginPath(); x.arc(0,0,rx,0,7); x.fill(); x.restore();
-    };
-  }
-  var glow=blob("255,255,255"), dark=blob("0,0,0");
-
-  var Wp=this.W, ASPECT=0.82;
-  var fH=Hp*0.98, fW=fH*ASPECT;
-  if(fW > Wp*0.98){ fW=Wp*0.98; fH=fW/ASPECT; }
+  var Hp=this.H, Wp=this.W, cxp=Wp*0.5, ASPECT=0.78;
+  var fH=Hp*0.92, fW=fH*ASPECT;
+  if(fW > Wp*0.96){ fW=Wp*0.96; fH=fW/ASPECT; }
   var top=(Hp-fH)*0.5;
-  function X(fx){ return cxp + fx*fW; }
-  function Y(fy){ return top + fy*fH; }
-  function RX(f){ return f*fW; }
-  function RY(f){ return f*fH; }
+  var sxT=fW/cw*SS, syT=fH/chh*SS, oxT=cxp/cw*SS, oyT=top/chh*SS;
 
   var e=expr;
-  // WHOLE-HEAD ROLL: rotate the entire head (cranium + jaw + every feature)
-  // about the NECK pivot (0,0.62) by headRoll — the neck bends, the shoulders
-  // stay. This is the "curious tilt" / neck-roll channel.
-  var roll=e.headRoll||0, rc=Math.cos(roll), rs=Math.sin(roll), nkx=0, nky=0.62;
-  function RLX(fx,fy){ var dx=fx-nkx, dy=fy-nky; return nkx + dx*rc - dy*rs; }
-  function RLY(fx,fy){ var dx=fx-nkx, dy=fy-nky; return nky + dx*rs + dy*rc; }
-  function HX(fx,fy){ return X(RLX(fx,fy)); }
-  function HY(fx,fy){ return Y(RLY(fx,fy)); }
-  // FEATURE transform: rotate features by headTilt + slide by headTurn about the
-  // face centre (0,0.42) — an expression channel on top of the head roll.
-  var ht=e.headTilt||0, hn=e.headTurn||0, cyf=0.42, ct=Math.cos(ht), stt=Math.sin(ht);
-  function FX(fx,fy){ var dx=fx, dy=fy-cyf; return X(RLX(dx*ct - dy*stt + hn, cyf + dx*stt + dy*ct)); }
-  function FY(fx,fy){ var dx=fx, dy=fy-cyf; return Y(RLY(dx*ct - dy*stt + hn, cyf + dx*stt + dy*ct)); }
+  var roll=e.headRoll||0, ht=e.headTilt||0, hn=e.headTurn||0;
+  // ctx.filter blur is in DEVICE px (ignores the transform) → radii in face units
+  function BL(f){ x.filter = f>0 ? "blur("+(f*sxT).toFixed(1)+"px)" : "none"; }
+  function ink(v,a){ var g=Math.round(v*255); return "rgba("+g+","+g+","+g+","+a+")"; }
+  // head transform: roll about the NECK pivot (0,0.62) — the neck bends, the
+  // shoulders stay. Features add tilt/turn about the face centre (0,0.42).
+  function headXf(){ x.setTransform(sxT,0,0,syT,oxT,oyT);
+    x.translate(0,0.62); x.rotate(roll); x.translate(0,-0.62); }
+  function featXf(){ headXf();
+    x.translate(hn,0.42); x.rotate(ht); x.translate(0,-0.42); }
+  function ell(cx,cy,rx,ry,style){ x.fillStyle=style; x.beginPath();
+    x.ellipse(cx,cy,rx,ry,0,0,6.2832); x.fill(); }
 
-  // additive LIGHT — cranium/jaw/forehead/cheeks/nose (head-rolled) + neck/shoulders (fixed)
-  x.globalCompositeOperation="lighter";
-  glow(HX(0,0.33),      HY(0,0.33), RX(0.400), RY(0.320), 1.00); // cranium
-  glow(HX(0,0.52),      HY(0,0.52), RX(0.330), RY(0.210), 0.98); // jaw / chin
-  glow(HX(0,0.24),      HY(0,0.24), RX(0.260), RY(0.090), 0.52); // forehead
-  var chR=e.cheekRaise||0;                               // Duchenne cheek lift
-  glow(HX(-0.180,0.46-chR*0.02), HY(-0.180,0.46-chR*0.02), RX(0.150), RY(0.100+chR*0.02), 0.55+chR*0.22);
-  glow(HX( 0.180,0.46-chR*0.02), HY( 0.180,0.46-chR*0.02), RX(0.150), RY(0.100+chR*0.02), 0.55+chR*0.22);
-  glow(FX(0,0.44),FY(0,0.44), RX(0.050), RY(0.100), 0.55); // nose ridge
-  glow(X(0),      Y(0.70), RX(0.175), RY(0.150), 0.55);    // neck
-  glow(X(0),      Y(1.00), RX(0.720), RY(0.150), 0.50);    // shoulders
+  // ---- head silhouette: soft oval — smooth high crown, tapered jaw, small
+  // rounded chin. Feminine proportions carry the portrait even at glyph
+  // resolution: width lives at the cheekbones, never the jaw. -------------
+  headXf(); BL(0.012);
+  x.beginPath();
+  x.moveTo(-0.272,0.300);
+  x.bezierCurveTo(-0.272,0.100,-0.150,0.045, 0,0.045);
+  x.bezierCurveTo( 0.150,0.045, 0.272,0.100, 0.272,0.300);
+  x.bezierCurveTo( 0.272,0.400, 0.256,0.462, 0.224,0.522);
+  x.bezierCurveTo( 0.163,0.618, 0.078,0.668, 0,0.682);
+  x.bezierCurveTo(-0.078,0.668,-0.163,0.618,-0.224,0.522);
+  x.bezierCurveTo(-0.256,0.462,-0.272,0.400,-0.272,0.300);
+  x.closePath();
+  var hg=x.createLinearGradient(0,0.05,0,0.70);
+  hg.addColorStop(0.00, ink(0.58,1)); hg.addColorStop(0.30, ink(0.70,1));
+  hg.addColorStop(0.62, ink(0.66,1)); hg.addColorStop(1.00, ink(0.54,1));
+  x.fillStyle=hg; x.fill();
 
-  // subtractive SHADOW + expressive features — BOLD & few, so every feature
-  // survives the downsample to glyph cells as an unmistakable dark shape
-  // (subtle sub-cell detail just averages back to grey mush at this resolution).
-  x.globalCompositeOperation="source-over";
+  // HAIR — what makes her HER at forty glyphs across: a centre-parted dark
+  // cap and two slim curtains hugging the face to just past the jaw (a long
+  // bob), tapering to soft tips. Dark mass (the face stays the bright thing);
+  // a couple of quiet strand highlights, no long spaghetti streaks.
+  BL(0.010);
+  x.beginPath();                                               // crown + curtain
+  x.moveTo(-0.298,0.335);
+  x.bezierCurveTo(-0.310,0.070,-0.170,0.005, 0,0.005);
+  x.bezierCurveTo( 0.170,0.005, 0.310,0.070, 0.298,0.335);
+  x.bezierCurveTo( 0.288,0.250, 0.238,0.200, 0.186,0.192);
+  x.bezierCurveTo( 0.096,0.180, 0.030,0.196, 0.008,0.148);     // sweep to the part
+  x.bezierCurveTo(-0.030,0.196,-0.096,0.180,-0.186,0.192);
+  x.bezierCurveTo(-0.238,0.200,-0.288,0.250,-0.298,0.335);
+  x.closePath(); x.fillStyle=ink(0.34,0.97); x.fill();
+  for(var hf=0; hf<2; hf++){                                   // face-hugging curtains
+    var sgH=hf?1:-1;
+    x.beginPath();
+    x.moveTo(sgH*0.236,0.210);
+    x.bezierCurveTo(sgH*0.306,0.290, sgH*0.316,0.430, sgH*0.298,0.560);  // outer edge
+    x.bezierCurveTo(sgH*0.288,0.650, sgH*0.264,0.720, sgH*0.226,0.760);  // to the tip
+    x.bezierCurveTo(sgH*0.216,0.700, sgH*0.226,0.640, sgH*0.238,0.560);  // inner edge
+    x.bezierCurveTo(sgH*0.254,0.460, sgH*0.256,0.360, sgH*0.236,0.210);
+    x.closePath(); x.fillStyle=ink(0.42,0.95); x.fill();
+  }
+  x.lineCap="round"; BL(0.008);
+  for(var hs=0; hs<2; hs++){                                   // one quiet shine arc per side
+    var sgS=hs?1:-1;
+    x.strokeStyle=ink(0.48,0.55); x.lineWidth=0.012;
+    x.beginPath(); x.moveTo(sgS*0.030,0.085);
+    x.quadraticCurveTo(sgS*0.150,0.075, sgS*0.238,0.195); x.stroke();
+    x.strokeStyle=ink(0.50,0.5); x.lineWidth=0.009;            // curtain strand
+    x.beginPath(); x.moveTo(sgS*0.252,0.280);
+    x.quadraticCurveTo(sgS*0.288,0.440, sgS*0.252,0.700); x.stroke();
+  }
+  x.strokeStyle=ink(0.12,0.9); x.lineWidth=0.008;              // the centre part
+  x.beginPath(); x.moveTo(0,0.010); x.lineTo(0.006,0.150); x.stroke();
+
+  // no torso: a short neck stub that fades to black just below the jaw — the
+  // portrait is a FACE, not a bust (the old shoulder slab read as a blob)
+  x.setTransform(sxT,0,0,syT,oxT,oyT); BL(0.02);
+  var ng=x.createLinearGradient(0,0.64,0,0.86);
+  ng.addColorStop(0,ink(0.34,1)); ng.addColorStop(0.55,ink(0.24,0.8)); ng.addColorStop(1,ink(0,0));
+  x.fillStyle=ng; x.fillRect(-0.048,0.640,0.096,0.22);
+  headXf(); BL(0.025);
+  ell(0,0.720,0.080,0.022, ink(0,0.40));                       // jaw shadow on the throat
+
+  // ---- tonal volume: smooth + luminous — soft cheek apples, no hollows -----
+  var chR=e.cheekRaise||0;
+  BL(0.06);
+  ell(0,0.262,0.150,0.075, ink(1,0.13));                       // forehead light
+  ell(-0.262,0.360,0.048,0.120, ink(0,0.14));                  // temple falloff
+  ell( 0.262,0.360,0.048,0.120, ink(0,0.14));
+  ell(-0.146,0.502-chR*0.014,0.060,0.040, ink(1,0.12+0.13*chR)); // cheek apples
+  ell( 0.146,0.502-chR*0.014,0.060,0.040, ink(1,0.12+0.13*chR));
+  ell(-0.196,0.438,0.052,0.024, ink(1,0.10+0.07*chR));         // cheekbone sheen
+  ell( 0.196,0.438,0.052,0.024, ink(1,0.10+0.07*chR));
+  ell(-0.232,0.565,0.042,0.062, ink(0,0.13));                  // jawline slimming shadow
+  ell( 0.232,0.565,0.042,0.062, ink(0,0.13));
+  ell(0,0.612,0.032,0.019, ink(1,0.11));                       // chin light
+  BL(0.045);
+  ell(-0.163,0.408,0.100,0.042, ink(0,0.10));                  // gentle orbit shaping
+  ell( 0.163,0.408,0.100,0.042, ink(0,0.10));
+
+  // ---- features (small blur → crisp shapes after the downsample) ----------
+  featXf();
+  var asym=e.asym||0;
   var brow=e.browY||0, tilt=e.browTilt||0, thick=e.browThick||0.5, furrow=e.furrow||0;
-  var eyeOpen=e.eyeOpen, eyeW=e.eyeW, lidU=e.lidUpper||0;
-  var gzX=e.gazeX||0, gzY=e.gazeY||0, cheek=e.cheekRaise||0;
-  var eyeYf=0.402+brow*0.6, eyeXf=0.180;
-  // eye half-height: opened by eyeOpen, closed toward a slit by the upper lid
-  var eyeHalf=Math.max(0.010, 0.056*eyeOpen*(1-0.72*lidU));
+  var lidU=e.lidUpper||0, lidL=e.lidLower||0;
+  var eyeXf=0.163, eyeYf=0.402+brow*0.6;
+  var eyeHalf=Math.max(0.006, 0.024*(e.eyeOpen||1)*(1-0.62*lidU));
+  var eyeWHalf=0.078*(e.eyeW||1);
+  var gzX=e.gazeX||0, gzY=e.gazeY||0;
 
-  // deep eye-sockets first (a soft recess so the eyes read as SET IN, not stuck on)
-  dark(FX(-eyeXf,eyeYf+0.010), FY(-eyeXf,eyeYf+0.010), RX(0.150*eyeW), RY(0.115), 0.30);
-  dark(FX( eyeXf,eyeYf+0.010), FY( eyeXf,eyeYf+0.010), RX(0.150*eyeW), RY(0.115), 0.30);
+  // nose — slim ridge, small refined tip (feature-space, tilts with the face)
+  BL(0.03);
+  x.fillStyle=ink(1,0.13); x.fillRect(-0.009,0.352,0.018,0.128);  // ridge light
+  ell(0,0.490,0.021,0.013, ink(1,0.15));                          // tip light
+  BL(0.012);
+  ell(0,0.516,0.033,0.009, ink(0,0.26));                          // base shadow
+  ell(-0.023,0.510,0.008,0.006, ink(0,0.42));                     // nostrils
+  ell( 0.023,0.510,0.008,0.006, ink(0,0.42));
 
-  // BROWS — one bold bar each, angled by tilt (·+ raises the outer end / arch,
-  // ·− raises the inner end / worry), thickened by browThick
+  // brows — slender high arches peaking at the outer third; +tilt raises the
+  // OUTER end (arch), − the INNER (worry)
+  BL(0.006); x.fillStyle=ink(0.10,0.95);
   for(var si=0; si<2; si++){
     var sgn=si?1:-1;
-    var bx=sgn*0.185, byf=0.320+brow, bh=0.020+0.016*thick;
-    var innerY=byf + tilt*0.045, outerY=byf - tilt*0.045;      // bar tilt
-    // three overlapping stamps along the bar make a clean thick stroke
-    dark(FX(sgn*0.075,innerY), FY(sgn*0.075,innerY), RX(0.070), RY(bh), 0.9);
-    dark(FX(bx,(innerY+outerY)/2), FY(bx,(innerY+outerY)/2), RX(0.085), RY(bh), 0.9);
-    dark(FX(sgn*0.290,outerY), FY(sgn*0.290,outerY), RX(0.075), RY(bh*0.9), 0.8);
+    var by=0.330+brow + (si? -asym*0.008 : asym*0.008);
+    var byI=by+tilt*0.048, byO=by-tilt*0.058, byM=(byI+byO)*0.5-0.014;
+    var th=0.010+0.012*thick;
+    x.beginPath();
+    x.moveTo(sgn*0.072, byI-th*0.40);
+    x.quadraticCurveTo(sgn*0.190, byM-th*0.90, sgn*0.256, byO-th*0.10);
+    x.lineTo(sgn*0.256, byO+th*0.30);
+    x.quadraticCurveTo(sgn*0.190, byM+th*0.60, sgn*0.072, byI+th*0.60);
+    x.closePath(); x.fill();
   }
-  if(furrow>0){                                                 // glabella crease (worry/knit)
-    dark(FX(-0.030,0.360+brow), FY(-0.030,0.360+brow), RX(0.016), RY(0.050), 0.6*furrow);
-    dark(FX( 0.030,0.360+brow), FY( 0.030,0.360+brow), RX(0.016), RY(0.050), 0.6*furrow);
+  if(furrow>0){                                    // glabella crease (worry/knit)
+    x.fillStyle=ink(0,0.42*furrow);
+    x.fillRect(-0.031,0.350+brow,0.012,0.044);
+    x.fillRect( 0.019,0.350+brow,0.012,0.044);
   }
 
-  // EYES — one BOLD dark almond each; a bright pupil-well glint gives it life,
-  // a lower-lid catch appears on a Duchenne smile (cheek raise)
+  // eyes — wide almonds with a LIFTED outer corner, winged lash line, bright
+  // sclera and a luminous iris: an eye, not a skull socket. sg orients the
+  // wing so inner→outer reads correctly on both sides.
+  function eyePath(ex,ey,wh,up,lo,sg){
+    var x0=ex-sg*wh, x1=ex+sg*wh;                  // inner corner → outer corner
+    x.beginPath();
+    x.moveTo(x0, ey+0.004);
+    x.quadraticCurveTo(ex, ey-up*2, x1, ey-0.007); // cat-eye lift at the outer end
+    x.quadraticCurveTo(ex, ey+lo*2, x0, ey+0.004);
+    x.closePath();
+  }
   for(var sj=0; sj<2; sj++){
-    var sg=sj?1:-1, exf=sg*eyeXf;
-    dark(FX(exf,eyeYf), FY(exf,eyeYf), RX(0.120*eyeW), RY(eyeHalf), 0.98);   // eye opening
-    if(lidU<0.55){                                             // pupil (only on an open eye)
-      var pxf=exf+gzX*0.030, pyf=eyeYf+gzY*0.028;
-      glow(FX(pxf,pyf-eyeHalf*0.2), FY(pxf,pyf-eyeHalf*0.2), RX(0.024), RY(0.024), 0.5); // iris light
-      dark(FX(pxf,pyf), FY(pxf,pyf), RX(0.028), RY(0.030), 0.9);            // pupil
+    var sg=sj?1:-1, exf=sg*eyeXf, eyf=eyeYf+(sj? asym*0.006 : -asym*0.006);
+    var up=eyeHalf, lo=eyeHalf*0.78*(1-0.55*lidL);
+    // smoky shadow field — a tilted soft mass that lifts toward the temple;
+    // THIS is what reads as "her eyes" at glyph scale
+    BL(0.014);
+    x.save(); x.translate(exf, eyf-0.006); x.rotate(-sg*0.10);
+    ell(0,0,eyeWHalf*1.08,0.020+up*0.8, ink(0.16,0.38));
+    x.restore();
+    BL(0.006);
+    x.strokeStyle=ink(1,0.16); x.lineWidth=0.010;  // under-brow highlight
+    x.beginPath(); x.moveTo(exf-sg*eyeWHalf*0.7, eyf-0.042);
+    x.quadraticCurveTo(exf+sg*eyeWHalf*0.2, eyf-0.052, exf+sg*eyeWHalf*1.05, eyf-0.038); x.stroke();
+    eyePath(exf,eyf,eyeWHalf,up,lo,sg);
+    x.fillStyle=ink(0.36,0.95); x.fill();          // shadowed almond
+    x.strokeStyle=ink(0,0.55); x.lineWidth=0.009;  // liner ring around the almond
+    eyePath(exf,eyf,eyeWHalf,up,lo,sg); x.stroke();
+    if(lidU<0.6){
+      x.save(); eyePath(exf,eyf,eyeWHalf,up,lo,sg); x.clip();
+      var ix=exf+gzX*0.026, iy=eyf+gzY*0.014;
+      BL(0.004);
+      ell(ix,iy,0.0250,0.0250, ink(0.95,1));       // luminous iris
+      ell(ix,iy,0.0080,0.0080, ink(0.05,1));       // pupil
+      BL(0);
+      ell(ix-0.007,iy-0.007,0.0050,0.0050, ink(1,0.95)); // glint
+      x.restore();
     }
-    if(cheek>0.2)                                              // lower-lid smile catch
-      glow(FX(exf,eyeYf+eyeHalf*0.9), FY(exf,eyeYf+eyeHalf*0.9), RX(0.105*eyeW), RY(0.016), 0.4*cheek);
+    BL(0.005); x.strokeStyle=ink(0.04,0.95); x.lineWidth=0.010; // lash line + wing
+    x.beginPath(); x.moveTo(exf-sg*eyeWHalf, eyf+0.004);
+    x.quadraticCurveTo(exf, eyf-up*2, exf+sg*eyeWHalf, eyf-0.007);
+    x.lineTo(exf+sg*(eyeWHalf+0.018), eyf-0.018); x.stroke();
+    if(chR>0.2){                                   // Duchenne lower-lid light
+      x.strokeStyle=ink(1,0.28*chR); x.lineWidth=0.006;
+      x.beginPath(); x.moveTo(exf-sg*eyeWHalf*0.8, eyf+lo*1.9);
+      x.quadraticCurveTo(exf, eyf+lo*2.5, exf+sg*eyeWHalf*0.8, eyf+lo*1.9); x.stroke();
+    }
   }
 
-  // NOSE — soft base shadow under the (already-lit) ridge
-  dark(FX(0,0.505), FY(0,0.505), RX(0.036), RY(0.058), 0.24);
-  dark(FX(-0.036,0.520), FY(-0.036,0.520), RX(0.018), RY(0.016), 0.34);  // nostril hollows
-  dark(FX( 0.036,0.520), FY( 0.036,0.520), RX(0.018), RY(0.016), 0.34);
-
-  // MOUTH — one BOLD curve: corners lift/drop by mouthCurve, a dark cavity opens
-  // with mouthOpen/jawDrop, lips catch a little light
-  var mc=e.mouthCurve||0, mo=e.mouthOpen||1, mw=e.mouthWidth||1, jd=e.jawDrop||0;
-  var mBaseY=0.590 + jd*0.030, lipH=0.014*mo+0.008;
-  for(var p=-3;p<=3;p++){
-    var pn=p/3, mx=pn*0.110*mw, my=mBaseY - mc*(1-pn*pn)*1.6;  // parabola: corners rise on a smile
-    dark(FX(mx,my), FY(mx,my), RX(0.030), RY(lipH), 0.82);
+  // mouth — full sculpted lips with a crisp cupid's bow; the LOWER lip carries
+  // the light. Corners lift by mouthCurve.
+  var mc=e.mouthCurve||0, mo=e.mouthOpen||1, mwF=e.mouthWidth||1, jd=e.jawDrop||0;
+  var mY=0.576+jd*0.035, mHalf=0.094*mwF;
+  var cY=mY+mc*0.9, kY=mY-mc*0.9, kYr=kY-asym*0.006;   // right corner cheats up
+  // on a frown the LIP corners droop only 55% as far as the contact line, and
+  // the bow hangs a FIXED distance above the higher of centre/corners — the
+  // lip keeps a constant thickness whichever way the mouth curves (otherwise
+  // a frown's bow-to-corner fill becomes a tall dark slab).
+  var kYu=(mc<0)? mY-mc*0.9*0.55 : kY, kYru=kYu-asym*0.006;
+  var lipTop=Math.min(cY,kYu)-0.020;
+  BL(0.006);
+  x.fillStyle=ink(0.20,0.95);                          // upper lip (defined bow)
+  x.beginPath();
+  x.moveTo(-mHalf,kYu);
+  x.quadraticCurveTo(0, cY+0.005, mHalf, kYru);
+  x.quadraticCurveTo(mHalf*0.55, lipTop, 0.020, lipTop+0.004);
+  x.quadraticCurveTo(0, lipTop+0.012, -0.020, lipTop+0.004);  // cupid's bow
+  x.quadraticCurveTo(-mHalf*0.55, lipTop, -mHalf, kYu);
+  x.closePath(); x.fill();
+  x.fillStyle=ink(0.52,0.88);                          // FULL lower lip
+  x.beginPath();
+  x.moveTo(-mHalf*0.94, kY+0.002);
+  x.quadraticCurveTo(0, cY+0.004, mHalf*0.94, kYr+0.002);
+  x.quadraticCurveTo(mHalf*0.60, cY+0.040*mo, 0, cY+0.044*mo);
+  x.quadraticCurveTo(-mHalf*0.60, cY+0.040*mo, -mHalf*0.94, kY+0.002);
+  x.closePath(); x.fill();
+  x.strokeStyle=ink(0.05,0.9); x.lineWidth=0.009;      // lip contact line
+  x.beginPath(); x.moveTo(-mHalf,kY);
+  x.quadraticCurveTo(0, cY+0.006, mHalf, kYr); x.stroke();
+  if(mo>1.22 || jd>0.10)                               // parted lips / speech gap
+    ell(0, cY+0.010, mHalf*0.55, 0.010+0.018*Math.max(0,mo-1)+0.05*jd, ink(0.05,0.9));
+  BL(0.02);
+  ell(0, mY+0.060, 0.048, 0.011, ink(0,0.25));         // under-lip shadow
+  ell(0, cY+0.026, 0.040, 0.009, ink(1,0.45));         // lower-lip catch light
+  if(mc>0.03){ var nf=Math.min(1,mc*12);               // nasolabial hint on a smile
+    x.strokeStyle=ink(0,0.11*nf); x.lineWidth=0.009;
+    x.beginPath(); x.moveTo(-0.048,0.508); x.quadraticCurveTo(-0.098,0.540,-0.110,0.572); x.stroke();
+    x.beginPath(); x.moveTo( 0.048,0.508); x.quadraticCurveTo( 0.098,0.540, 0.110,0.572); x.stroke();
   }
-  if(mo>1.4 || jd>0.15)                                        // open-mouth cavity (gasp / speak)
-    dark(FX(0,mBaseY+0.010), FY(0,mBaseY+0.010), RX(0.075*mw), RY(0.020+0.026*(mo-1)+0.03*jd), 0.9);
-  glow(FX(0,mBaseY+lipH+0.020), FY(0,mBaseY+lipH+0.020), RX(0.090*mw), RY(0.012), 0.28); // lower-lip catch
-  if(mc>0.02){ var nf=Math.min(1,mc*10);                       // nasolabial hint on a big smile
-    dark(FX(-0.120,0.525), FY(-0.120,0.525), RX(0.018), RY(0.055), 0.20*nf);
-    dark(FX( 0.120,0.525), FY( 0.120,0.525), RX(0.018), RY(0.055), 0.20*nf); }
-  // cheekbone / jaw shading to sculpt the lower face
-  dark(FX(-0.300,0.360), FY(-0.300,0.360), RX(0.075), RY(0.150), 0.34);  // temples
-  dark(FX( 0.300,0.360), FY( 0.300,0.360), RX(0.075), RY(0.150), 0.34);
-  dark(FX(-0.255,0.560), FY(-0.255,0.560), RX(0.080), RY(0.075), 0.22);  // under-cheek hollow
-  dark(FX( 0.255,0.560), FY( 0.255,0.560), RX(0.080), RY(0.075), 0.22);
 
-  // vignette (supersampled coords)
-  var vcx=X(0)/cw*SS, vcy=Y(0.42)/chh*SS;
-  var vg=x.createRadialGradient(vcx,vcy,RY(0.10)/chh*SS, vcx,vcy,RY(1.0)/chh*SS);
-  vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(0.66,"rgba(0,0,0,0)");
-  vg.addColorStop(1,"rgba(0,0,0,0.97)");
+  // etched CIRCUIT TRACE — one delicate machine "scar" down the right cheek;
+  // a quiet engraving with node dots. She is still made of the machine.
+  BL(0.003);
+  x.strokeStyle=ink(0.95,0.24); x.lineWidth=0.0045;
+  x.beginPath(); x.moveTo(0.212,0.470); x.lineTo(0.212,0.520);
+  x.lineTo(0.188,0.552); x.lineTo(0.188,0.600); x.stroke();
+  ell(0.212,0.470,0.0045,0.0045, ink(1,0.40));
+  ell(0.188,0.600,0.005,0.005, ink(1,0.42));
+
+  // ---- vignette + read-back ------------------------------------------------
+  x.setTransform(1,0,0,1,0,0); x.filter="none";
+  var vcx=cxp/cw*SS, vcy=(top+0.42*fH)/chh*SS, vr=fH/chh*SS;
+  var vg=x.createRadialGradient(vcx,vcy,vr*0.16, vcx,vcy,vr*1.02);
+  vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(0.7,"rgba(0,0,0,0)");
+  vg.addColorStop(1,"rgba(0,0,0,0.95)");
   x.fillStyle=vg; x.fillRect(0,0,MW,MH);
 
-  // stash centroid + head half-extents + eye centres (flight paths, the blink,
-  // and the geometric "words never render over the head" gate)
+  // stash centroid + head half-extents + eye centres (flight paths and the
+  // geometric "words never render over the head" gate)
   this.faceCX=cxp; this.faceCY=top+0.42*fH;
   this.faceRX=fW*0.42; this.faceRY=fH*0.36;
-  this._eyeC=[{x:FX(-eyeXf,eyeYf),y:FY(-eyeXf,eyeYf)},{x:FX(eyeXf,eyeYf),y:FY(eyeXf,eyeYf)}];
+  var rc=Math.cos(roll), rs=Math.sin(roll), ct=Math.cos(ht), stt=Math.sin(ht);
+  function toStage(fx,fy){
+    var px=hn + fx*ct-(fy-0.42)*stt, py=0.42 + fx*stt+(fy-0.42)*ct; // feature tilt/turn
+    var qx=px*rc-(py-0.62)*rs, qy=0.62 + px*rs+(py-0.62)*rc;        // head roll
+    return {x:cxp+qx*fW, y:top+qy*fH};
+  }
+  this._eyeC=[toStage(-eyeXf,eyeYf), toStage(eyeXf,eyeYf)];
 
-  // BOX-DOWNSAMPLE each SSxSS block (avg red) → contrast crush → mask
+  // BOX-DOWNSAMPLE each SSxSS block (avg red) → gentle contrast shape → mask.
+  // The curve is soft ON PURPOSE: the portrait needs its midtones (that's where
+  // the shading lives); only the near-black floor is clipped away.
   var img=x.getImageData(0,0,MW,MH).data, out=new Float32Array(cols*rows);
   for(var r=0;r<rows;r++){
     for(var c=0;c<cols;c++){
@@ -700,10 +837,7 @@ Swarmcore.prototype.buildMaskFor=function(expr){
       for(var yy=0;yy<SS;yy++){ var off=((r*SS+yy)*MW + c*SS)*4;
         for(var xx=0;xx<SS;xx++) acc+=img[off+xx*4]; }
       var v=acc/(SS*SS)/255;
-      // steeper crush: kill the dim vignette halo so the HEAD SILHOUETTE is
-      // crisp against the field, and a mild gamma>1 deepens the feature shadows
-      v=clamp((v-0.26)/0.60, 0, 1);
-      out[r*cols+c]=Math.pow(v,1.06);
+      out[r*cols+c]=clamp((v-0.08)/0.72, 0, 1);
     }
   }
   return out;
@@ -1460,8 +1594,19 @@ Swarmcore.prototype.glitch=function(){
 Swarmcore.prototype.drawFace=function(now){
   var ctx=this.ctx, cols=this.cols, rows=this.rows, cw=this.cellW, chh=this.cellH;
   ctx.clearRect(0,0,this.W,this.H);
-  ctx.font=this.fontPx.toFixed(1)+"px "+FONT;
+  // three WEIGHT buckets — the portrait's tone is carried by glyph coverage
+  // (like the print it's modeled on): highlights are heavy+large, shadows light.
+  // The font is set only when the bucket changes cell-to-cell (regions are
+  // contiguous, so switches are rare and the loop stays cheap).
+  var F0="400 "+(this.fontPx*0.92).toFixed(1)+"px "+FONT,
+      F1="600 "+this.fontPx.toFixed(1)+"px "+FONT,
+      F2="800 "+(this.fontPx*1.12).toFixed(1)+"px "+FONT, curF="";
   ctx.textBaseline="top";
+  // colour strings are quantized (5-bit RGB / 6-bit A) and cached, and fillStyle
+  // is only touched when the quantized colour actually changes cell-to-cell —
+  // string building was the hottest line in the whole frame.
+  var colStrs=this._colStrs||(this._colStrs=new Map()); var lastKey=-1;
+  if(colStrs.size>2e4) colStrs.clear();
 
   var t=now/1000;
   var reveal=this.reveal, bursts=this.bursts, zoneE=this.zoneE;
@@ -1474,7 +1619,7 @@ Swarmcore.prototype.drawFace=function(now){
   for(var s2=0;s2<swaps;s2++){ var ri=(Math.random()*cols*rows)|0;
     if(fc && fc[ri]) continue;                                  // keep the face's WORDS legible
     this.ch[ri]=CHARS[(Math.random()*CHARS.length)|0]; }
-  var powE=1.18+0.55*freeze;                                    // lower = brighter face; resolve snaps edges
+  var powE=0.85+0.40*freeze;                                    // <1 lifts midtones; resolve snaps edges
   var breathG=1 + this.bAmp*Math.sin(t*6.2832*this.bHz)*reveal  // arousal-driven breath
                 + (tremor>0.02 ? 0.015*Math.sin(t*13):0);       // alert: micro-tremor
   var synthBloom=0.12*Math.exp(-Math.pow((now-this._synthT)/300,2)); // insight pulse
@@ -1483,36 +1628,29 @@ Swarmcore.prototype.drawFace=function(now){
   var auroraOn=auroraEnv>0.004;
   var lumScale=1-0.22*this.frust;                               // frustration darkens
   var maxR=this._burstMaxR||Math.max(cols,rows)*0.34;
+  // NEAR-MONOCHROME portrait: face midtones take only a restrained pull of the
+  // state hue and the highlights go to paper-white — every glyph stays readable.
+  // The saturated state colour lives in the AMBIENT FIELD and the pulses instead.
+  var mid=[lerp(238,core[0],0.45), lerp(241,core[1],0.45), lerp(245,core[2],0.45)];
 
-  // ---- GLOW UNDERLAY — a soft luminous bloom of the face, painted UNDER the
-  // glyphs so the portrait reads as one glowing volume, not scattered points of
-  // light. A tiny cols×rows buffer of the state-coloured face brightness, blitted
-  // up-scaled (smoothed) = a cheap, seizure-safe bloom that tracks flare/insight.
-  if(!this.glowC){ this.glowC=document.createElement("canvas"); }
-  if(this.glowC.width!==cols || this.glowC.height!==rows){
-    this.glowC.width=cols; this.glowC.height=rows;
-    this.glowCtx=this.glowC.getContext("2d");
-    this.glowImg=this.glowCtx.createImageData(cols,rows);
+  // ---- PHOSPHOR BACKFILL — a crisp cell-aligned fill behind the lit face.
+  // Glyphs only cover ~25% of a cell, so without this the portrait can never
+  // read at a distance; a per-cell rect (no blur, follows the mask exactly, so
+  // eyes/mouth stay dark) lifts patch luminance like a CRT afterglow while the
+  // characters stay fully legible on top.
+  var mm=this.mask, bfB=(1+0.6*flareEnv+0.5*synthBloom)*reveal;
+  for(var bi=0; bi<cols*rows; bi++){
+    var bf=mm[bi]*bfB;
+    if(bf<=0.30) continue;
+    var bA=((bf-0.30)*0.26*63)|0; if(bA<2) continue;
+    var bKey=(1<<22)|((mid[0]>>3)<<16)|((mid[1]>>3)<<11)|((mid[2]>>3)<<6)|bA;
+    if(bKey!==lastKey){
+      var bs=colStrs.get(bKey);
+      if(!bs){ bs="rgba("+(mid[0]&~7)+","+(mid[1]&~7)+","+(mid[2]&~7)+","+(bA/63).toFixed(3)+")"; colStrs.set(bKey,bs); }
+      ctx.fillStyle=bs; lastKey=bKey;
+    }
+    ctx.fillRect((bi%cols)*cw, ((bi/cols)|0)*chh, cw+0.5, chh+0.5);
   }
-  var gdat=this.glowImg.data, mm=this.mask;
-  var bloomBoost=1 + 2.2*flareEnv + 1.6*synthBloom;             // face "breathes" light on payoff
-  for(var gi=0; gi<cols*rows; gi++){
-    var fvv=mm[gi]*reveal;
-    var gA=clamp(fvv*fvv*bloomBoost, 0, 1);                     // bright regions bloom most
-    var o=gi*4;
-    // bright cells lift toward the tinted-white highlight (same material as glyphs)
-    var hf=clamp((fvv-0.55)/0.45,0,1)*0.85;
-    gdat[o]  =lerp(core[0],glow[0],hf)|0;
-    gdat[o+1]=lerp(core[1],glow[1],hf)|0;
-    gdat[o+2]=lerp(core[2],glow[2],hf)|0;
-    gdat[o+3]=(gA*235)|0;
-  }
-  this.glowCtx.putImageData(this.glowImg,0,0);
-  ctx.save();
-  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
-  ctx.globalCompositeOperation="screen"; ctx.globalAlpha=0.92;  // soft bloom, no clipping to white
-  ctx.drawImage(this.glowC, 0,0,cols,rows, -cw*0.5,-chh*0.5, this.W+cw, this.H+chh);
-  ctx.restore();
 
   for(var r=0;r<rows;r++){
     var yy=r*chh, ry=r/rows;
@@ -1524,7 +1662,7 @@ Swarmcore.prototype.drawFace=function(now){
       // strong non-linear lift so the LIT FACE pops off the dim field: the more
       // "face" a cell is, the harder it brightens.
       var lit=face*cr*breathG;
-      var g = lit*(1+0.75*face);
+      var g = lit*(0.90+0.50*face);
       // HEAD-SILHOUETTE GATE — the ambient code-field runs full strength OUTSIDE
       // the head, but is suppressed INSIDE it, so the dark features (eyes, mouth)
       // read as clean holes instead of noise. This is what makes it a FACE and
@@ -1532,10 +1670,10 @@ Swarmcore.prototype.drawFace=function(now){
       var hx=(c*cw+cw*0.5-this.faceCX)/(this.faceRX*1.16);
       var hy=(yy+chh*0.5-this.faceCY)/(this.faceRY*1.12);
       var inHead=clamp(1.12-(hx*hx+hy*hy),0,1)*reveal;
-      g=Math.max(g, (0.03+0.035*Math.sin(t*2.0+this.jit[i]))*(1-0.92*inHead));  // ambient field, gated
+      g=Math.max(g, (0.022+0.027*Math.sin(t*2.0+this.jit[i]))*(1-0.92*inHead)); // ambient field, gated
       // active-agent zone glow — face-weighted so it never fills the holes
       var zone=(c*3/cols)|0; if(zone>2)zone=2;
-      g += 0.22*zoneE[zone]*face;
+      g += 0.14*zoneE[zone]*face;
       // bursts — a soft radial BLOOM centred on the active zone (SEEK grows out,
       // SYNTH gathers in). A wide gaussian, not a hard ring, so it reads as the
       // face breathing rather than a sci-fi shockwave sweeping the glyphs.
@@ -1544,7 +1682,7 @@ Swarmcore.prototype.drawFace=function(now){
         var dx=c-bu.x, dy=r-bu.y, d2=dx*dx+dy*dy;
         var spread=bu.collapse ? (0.5+0.5*a) : (1.2-0.7*a);     // in vs out
         var bloom=Math.exp(-d2/(maxR*maxR*spread*spread))*(1-a)*bu.strong;
-        g += bloom*0.5*(0.5+face);                              // favours the lit face
+        g += bloom*0.32*(0.5+face);                             // favours the lit face
       }
       // synthesis insight bloom (face-weighted, brief)
       if(synthBloom>0.002) g += synthBloom*face;
@@ -1553,30 +1691,42 @@ Swarmcore.prototype.drawFace=function(now){
       // keyword imprint glow (fades over ~700ms)
       g += gboost[i];
       g=clamp(g*lumScale,0,1.4);
-      var alpha=0.045+0.955*Math.pow(Math.min(g,1),powE);
-      // colour: eased STATE core → its highlight; green resting is always home
-      // SYMMETRIC lerp: one factor for R,G,B so each hue blooms to ITS OWN
-      // tinted-white (never skews green); flare lifts the whole face toward glow.
-      var hi=clamp((g-0.5)/0.5,0,1);
-      var f=hi*0.82+flareEnv*0.20; if(f>1)f=1;
-      var R=lerp(core[0],glow[0],f)|0,
-          G=lerp(core[1],glow[1],f)|0,
-          B=lerp(core[2],glow[2],f)|0;
-      // RESOLVE finale — the whole run's palette sweeps across the face by column
+      var alpha=0.05+0.95*Math.pow(Math.min(g,1),powE);
+      // colour: ambient cells keep the eased STATE hue; face cells ride the
+      // paper ramp (tinted midtone → white highlight) so the portrait stays
+      // near-monochrome and READABLE — the hue never floods the face.
+      var fw=clamp(face*1.9-0.05,0,1)*cr;
+      var hi=clamp((g-0.42)/0.58,0,1);
+      var f=hi*0.80+flareEnv*0.20; if(f>1)f=1;
+      var R=lerp(lerp(core[0],mid[0],fw),251,f)|0,
+          G=lerp(lerp(core[1],mid[1],fw),252,f)|0,
+          B=lerp(lerp(core[2],mid[2],fw),254,f)|0;
+      // RESOLVE finale — the run's palette sweeps across the face by column
       if(auroraOn){
         var ph=(c/cols)*5, i0=ph|0; if(i0>4)i0=4; var fr=ph-i0, A0=AURORA[i0], A1=AURORA[i0+1];
-        R=lerp(R, A0[0]+(A1[0]-A0[0])*fr, auroraEnv)|0;
-        G=lerp(G, A0[1]+(A1[1]-A0[1])*fr, auroraEnv)|0;
-        B=lerp(B, A0[2]+(A1[2]-A0[2])*fr, auroraEnv)|0;
+        var aw=auroraEnv*0.55;
+        R=lerp(R, A0[0]+(A1[0]-A0[0])*fr, aw)|0;
+        G=lerp(G, A0[1]+(A1[1]-A0[1])*fr, aw)|0;
+        B=lerp(B, A0[2]+(A1[2]-A0[2])*fr, aw)|0;
       }
-      // DOUBT: ember furrow, strong in the shadows (brow/eyes), a hint even when lit
+      // DOUBT: ember furrow in the shadows (brow/eyes) — a cast, not a flood
       if(doubtS>0){
         var w=doubtS*(face<0.55 ? (0.55-face)*2.0 : 0.14); if(w>1)w=1;
-        R=lerp(R,EMBER[0],w*0.80)|0; G=lerp(G,EMBER[1],w*0.62)|0; B=lerp(B,EMBER[2],w*0.60)|0;
+        R=lerp(R,EMBER[0],w*0.42)|0; G=lerp(G,EMBER[1],w*0.32)|0; B=lerp(B,EMBER[2],w*0.30)|0;
       }
-      // DOUBT shudder: per-cell x jitter once the face has formed
-      var xoff=(doubtS>0.02 && reveal>=0.5) ? doubtS*0.38*cw*Math.sin(t*7+this.jit[i]) : 0;
-      ctx.fillStyle="rgba("+R+","+G+","+B+","+alpha.toFixed(3)+")";
+      // DOUBT shudder: per-cell x jitter once the face has formed (kept small —
+      // legibility beats drama)
+      var aQ=(alpha*63)|0;
+      if(aQ<5 && face<0.08) continue;      // invisible ambient cell: skip the draw
+      var xoff=(doubtS>0.02 && reveal>=0.5) ? doubtS*0.16*cw*Math.sin(t*7+this.jit[i]) : 0;
+      var wantF=(face>0.55&&g>0.55)?F2:(g>0.25?F1:F0);
+      if(wantF!==curF){ ctx.font=wantF; curF=wantF; }
+      var key=((R>>3)<<16)|((G>>3)<<11)|((B>>3)<<6)|aQ;
+      if(key!==lastKey){
+        var cs=colStrs.get(key);
+        if(!cs){ cs="rgba("+(R&~7)+","+(G&~7)+","+(B&~7)+","+(aQ/63).toFixed(3)+")"; colStrs.set(key,cs); }
+        ctx.fillStyle=cs; lastKey=key;
+      }
       ctx.fillText(this.ch[i], c*cw+xoff, yy);
     }
   }
