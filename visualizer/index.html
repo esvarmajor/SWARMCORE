@@ -383,6 +383,9 @@ var TOOL_COLORS={
   _default:         [127,255,212]    // chrome-teal
 };
 function toolColor(name){ return TOOL_COLORS[name] || TOOL_COLORS._default; }
+// tool glow = the same symmetric core→glow lerp the states use (one material),
+// so a tool hue blooms to its OWN tinted white instead of skewing
+function toolGlow(c){ return [lerp(c[0],255,0.72)|0, lerp(c[1],255,0.72)|0, lerp(c[2],255,0.72)|0]; }
 var DOUBT_RE=/doesn'?t match|data[- ]quality|discrepan|contradict|mismatch|I notice|however,|but the|ambigu|unclear|caveat|conflict|uncertain|\bflag\b|unsubstantiated|not supported/i;
 var MISS_RE=/no .*(entry|result|match|knowledge)|not found|unavailable|missing|failed|empty/i;
 var STOPWORDS={JSON:1,NULL:1,TRUE:1,FALSE:1,HTTP:1,HTTPS:1,THIS:1,THAT:1,WITH:1,FROM:1,INTO:1,YOUR:1,HAVE:1,WILL:1,QUERY:1,INPUT:1,NAME:1,TYPE:1,KEY:1,TEXT:1,ROLE:1,STEP:1};
@@ -1247,7 +1250,7 @@ Swarmcore.prototype.enterStep=function(ev, idx){
   if(!this._ff){
     if(step.type==="tool_call"){
       this.spawnEmit(ev, si);                           // exhale the action word outward
-      this.spawnPulse(zone, step.content.name, st.pulse, "call");
+      this.spawnPulse(zone, step.content.name, toolColor(step.content.name), "call");
       this.burst(zone, 1.0, false);                     // face reaches out (outward ring)
     }
     else if(step.type==="tool_result"){
@@ -1255,7 +1258,7 @@ Swarmcore.prototype.enterStep=function(ev, idx){
       var miss = (cls.id==="doubt") ||
         (r0 && ((r0.results && r0.results.length===0) || (r0.result && MISS_RE.test(r0.result))));
       this.spawnReturn(ev, si, !!miss);                // inhale the answer home (flare on landing)
-      this.spawnPulse(zone, r0.name||"result", st.pulse, "return");   // contracting return ring
+      this.spawnPulse(zone, r0.name||"result", toolColor(r0.name), "return");
       this.burst(zone, 0.8, true);                      // convergence
     }
     else if(step.type==="reasoning") this.spawnMurmur(ev, si); // idle thought: a small outward breath
@@ -1300,12 +1303,44 @@ Swarmcore.prototype.burst=function(zone,strong,collapse){
 };
 
 // ============================================================ action pulses
-// No expanding/contracting rings — the swarm's action reads ONLY through the
-// flying keyword and its imprint into the code-face. All that survives here is
-// a small, still rim tag marking WHERE the current tool call is waiting for its
-// answer (no throb, no ring), so the call→return still has a spatial anchor.
-Swarmcore.prototype.spawnPulse=function(){ /* rings removed — intentional no-op */ };
-Swarmcore.prototype.drawPulses=function(){ /* rim labels removed — the flying word IS the signal */ };
+// Labeled expanding rings, coloured by TOOL identity — the original design,
+// restored: web_search ice-blue, knowledge_lookup violet, steering amber.
+// Several tools in flight = several hues alive at once, layered over the one
+// travelling state hue of the face. PULSE = which tool · FACE = how it feels.
+Swarmcore.prototype.spawnPulse=function(zone,label,color,kind){
+  if(!this.pulses) this.pulses=[];
+  var cx=(zone+0.5)/3*this.W;
+  var cy=(this.faceCY||this.H*0.42) + Math.sin(this.pulses.length*1.7)*this.H*0.04;
+  this.pulses.push({ x:cx, y:cy, age:0, life:1250,
+    color:color||TOOL_COLORS._default, label:String(label||"tool").toUpperCase(), kind:kind });
+  if(this.pulses.length>6) this.pulses.shift();
+};
+
+Swarmcore.prototype.drawPulses=function(){
+  var ctx=this.ctx, ps=this.pulses; if(!ps||!ps.length) return;
+  var maxR=Math.min(this.W,this.H)*0.30;
+  for(var i=0;i<ps.length;i++){
+    var p=ps[i], a=p.age/p.life; if(a>=1) continue;
+    var c=p.color, fade=(1-a), R=c[0]|0,G=c[1]|0,B=c[2]|0;
+    var rad=8 + smooth(a)*maxR;
+    // expanding double ring
+    ctx.strokeStyle="rgba("+R+","+G+","+B+","+(0.5*fade).toFixed(3)+")";
+    ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(p.x,p.y,rad,0,6.2832); ctx.stroke();
+    ctx.strokeStyle="rgba("+R+","+G+","+B+","+(0.22*fade).toFixed(3)+")";
+    ctx.lineWidth=1; ctx.beginPath(); ctx.arc(p.x,p.y,rad*0.62,0,6.2832); ctx.stroke();
+    // label rises + fades
+    var sz=Math.max(11,this.fontPx*1.15);
+    ctx.font="bold "+sz.toFixed(1)+"px "+FONT;
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    var pre=(p.kind==="return"||p.kind==="result")?"◀ ":(p.kind==="steer")?"✎ ":"⟐ ";
+    var ly=p.y - a*this.H*0.06;
+    ctx.fillStyle="rgba(4,6,12,"+(0.5*fade).toFixed(3)+")";      // dark plate for legibility
+    ctx.fillText(pre+p.label, p.x+0.8, ly+0.8);
+    ctx.fillStyle="rgba("+R+","+G+","+B+","+(0.96*fade).toFixed(3)+")";
+    ctx.fillText(pre+p.label, p.x, ly);
+    ctx.textAlign="left"; ctx.textBaseline="top";
+  }
+};
 
 // ============================================================ keyword intake
 // Pick the salient keyword(s) for a step (tool names, argument values, source
@@ -1365,6 +1400,11 @@ Swarmcore.prototype.spawnEmit=function(ev, stepIndex, forceWord){
   var toks = forceWord ? [String(forceWord).toUpperCase()] : this.pickTokens(ev.step);
   if(!toks.length) return;
   var zone=ev.ai%3, st=STATE[this.curStateId]||STATE.focus;
+  // the flying ACTION word carries WHICH tool (identity hue); murmurs stay state-coloured
+  var idCol = forceWord ? TOOL_COLORS.steering
+            : (ev.step.type==="tool_call" && ev.step.content) ? toolColor(ev.step.content.name)
+            : st.pulse;
+  var idGlow = toolGlow(idCol);
   var live=0; for(var q=0;q<this.tokens.length;q++) if(!this.tokens[q].landed) live++;
   for(var k=0;k<toks.length;k++){
     if(live>=INTAKE_MAX) break; live++;
@@ -1376,7 +1416,7 @@ Swarmcore.prototype.spawnEmit=function(ev, stepIndex, forceWord){
       sx:ox, sy:oy, tx:edge.x, ty:edge.y,
       cx:lerp(ox,edge.x,0.5)+(rnd()-0.5)*this.W*0.10, cy:lerp(oy,edge.y,0.5)-this.H*0.05,
       age:0, life:900, delay:k*120, zone:zone, landed:false,
-      color:st.pulse.slice(), glow:st.glow.slice()
+      color:idCol.slice(), glow:idGlow.slice()
     });
   }
 };
@@ -1386,6 +1426,9 @@ Swarmcore.prototype.spawnEmit=function(ev, stepIndex, forceWord){
 Swarmcore.prototype.spawnReturn=function(ev, stepIndex, dead){
   var toks=this.pickTokens(ev.step); if(!toks.length) return;
   var zone=ev.ai%3, st=STATE[this.curStateId]||STATE.focus, pend=this.pendingCall[zone];
+  // the ANSWER inhales in the hue of the tool that fetched it
+  var idCol=(ev.step.content && ev.step.content.name) ? toolColor(ev.step.content.name) : st.pulse;
+  var idGlow=toolGlow(idCol);
   var live=0; for(var q=0;q<this.tokens.length;q++) if(!this.tokens[q].landed) live++;
   for(var k=0;k<toks.length;k++){
     if(live>=INTAKE_MAX) break; live++;
@@ -1397,7 +1440,7 @@ Swarmcore.prototype.spawnReturn=function(ev, stepIndex, dead){
       sx:edge.x, sy:edge.y, tcol:tg.col, trow:tg.row, tx:tg.col*this.cellW, ty:tg.row*this.cellH,
       cx:lerp(edge.x,this.faceCX,0.5)+(rnd()-0.5)*this.W*0.06, cy:lerp(edge.y,this.faceCY,0.5),
       age:0, life:820, delay:k*110, zone:zone, landed:false,
-      color:st.pulse.slice(), glow:st.glow.slice()
+      color:idCol.slice(), glow:idGlow.slice()
     });
   }
   this.pendingCall[zone]=null;                              // the call has been answered

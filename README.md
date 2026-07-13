@@ -252,10 +252,11 @@ frontend can animate the replay at a natural pace.
 - **Emotional / rational states — the full colour wheel.** Each replayed step is
   classified into one of six affective states, and the whole face **eases toward
   that state's colour and motion**. Because only *one* state is ever active, the
-  face is a single jewel-hue at any instant that **travels the wheel over the run**
-  — sequential colour, never a simultaneous rainbow. Every highlight blooms to *its
-  own* tinted-white, on a deliberately **hue-neutral graphite frame** so the
-  travelling hue is the only chroma on screen.
+  face is a single jewel-hue at any instant that **travels the wheel over the run**.
+  Every highlight blooms to *its own* tinted-white, on a deliberately
+  **hue-neutral graphite frame**. Layered over that travelling state hue, tool
+  activity carries its own identity colours (below) — two separate channels:
+  **FACE = how it feels · PULSE = which tool is working.**
 
   | State | Bus | Hue | Fires on | Expression + motion |
   |---|---|---|---|---|
@@ -275,8 +276,13 @@ frontend can animate the replay at a natural pace.
   and imprints its word into the face. A dead-end result instead **scatters** the
   word before it lands and the face flinches into doubt. Reasoning steps give a
   small outward *murmur*. All flights are seeded, so the loop records identically.
-  (There are no ring/scanline pulses — the flying word and its imprint are the only
-  action signal, so nothing sweeps across the code.)
+- **Tool pulses — the second colour channel.** Every `tool_call` / `tool_result` /
+  steering checkpoint also fires a labeled **expanding double-ring** from the acting
+  agent's zone (`⟐ WEB_SEARCH`, `◀ KNOWLEDGE_LOOKUP`, `✎ STEERING`), coloured by
+  **tool identity**: `web_search` ice-blue, `knowledge_lookup` violet, human
+  steering amber, anything else chrome-teal. The flying action/answer words carry
+  the same identity hue. Several tools in flight = several hues alive at once,
+  layered over the face's single state colour.
 - **Palette.** A **hue-neutral graphite frame** (near-black `#04060c`→`#070b12`
   background, cool-neutral circuit texture and vignette, graphite borders) so the
   JS owns every saturated pixel — the face's single travelling jewel-hue is the
